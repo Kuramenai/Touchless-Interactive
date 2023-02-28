@@ -23,22 +23,32 @@ class HandDetector():
   def find_hands(self, frame, draw=True):
 
     frameRGB = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-    results = self.hands.process(frameRGB)
+    self.results = self.hands.process(frameRGB)
 
-    if results.multi_hand_landmarks:
-      for handLms in results.multi_hand_landmarks:
-        for id, lm in enumerate(handLms.landmark):
-          h, w, c = frame.shape
-          cx, cy = int(lm.x * w), int(lm.y * h)
-          #print(id, cx, cy)
-
-          if id == 0:
-            cv2.circle(frame, (cx, cy), 25, (255, 0, 255), cv2.FILLED)
+    if self.results.multi_hand_landmarks:
+      for handLms in self.results.multi_hand_landmarks:
         if draw:
           self.mpDraw.draw_landmarks(frame, handLms, self.mpHands.HAND_CONNECTIONS)
-
-    
+   
     return frame
+  
+  def find_landmarks(self, frame, handNo = 0, draw=True):
+
+    landmarks = []
+    
+    if self.results.multi_hand_landmarks:
+      my_hand = self.results.multi_hand_landmarks[handNo]
+      for id, lm in enumerate(my_hand.landmark):
+          h, w, c = frame.shape
+          cx, cy = int(lm.x * w), int(lm.y * h)
+          landmarks.append([id, cx, cy])
+          #print(id, cx, cy)
+          if draw:
+            cv2.circle(frame, (cx, cy), 10, (255, 0, 255), cv2.FILLED)
+
+    return landmarks
+  
+
   
 
 def main():
@@ -60,6 +70,10 @@ def main():
       break
 
     frame = Detector.find_hands(frame)
+    landmarks = Detector.find_landmarks(frame)
+
+    if len(landmarks) != 0:
+      print(landmarks[4])
 
     #Calculate the frame rate
     current_time = time.time()
