@@ -1,5 +1,6 @@
 import datetime
 
+
 class FPS:
     
     def __init__(self):
@@ -19,7 +20,7 @@ class FPS:
         self._num_frames += 1
 
     def elapsed(self):
-        return (self._end - self._end).total_seconds()
+        return (self._end - self._start).total_seconds()
     
     def fps(self):
         return self._num_frames/self.elapsed()
