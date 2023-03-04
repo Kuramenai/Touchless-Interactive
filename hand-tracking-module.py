@@ -4,17 +4,16 @@ import time
 
 
 class HandDetector():
-  def __init__(self, mode=False, max_num_hands=2, model_complexity = 1,
+  def __init__(self, mode=False, max_num_hands=2,
                min_detection_confidence=0.5, min_tracking_confidence=0.5):
     self.mode = mode
     self.max_num_hands = max_num_hands
-    self.model_complexity = model_complexity
     self.min_detection_confidence = min_detection_confidence
     self.min_tracking_confidence = min_tracking_confidence
 
     #mediapipe object for hand detection
     self.mpHands = mp.solutions.hands
-    self.hands = self.mpHands.Hands(self.mode, self.max_num_hands,  self.model_complexity,
+    self.hands = self.mpHands.Hands(self.mode, self.max_num_hands,
                                     self.min_detection_confidence, self.min_tracking_confidence)
 
     #mediapipe object for drawing landmarks
