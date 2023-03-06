@@ -38,13 +38,15 @@ def main():
         cv2.circle(frame, (x_index, y_index), 10, (255, 0, 255), cv2.FILLED)
 
         volume =  int(((h - y_index) / h)*100)
-        #print(volume)
+       
         if volume < 0:
             Mixer.setvolume(0)
-        elif volume > 0:
+        elif volume > 100:
             Mixer.setvolume(100)
         else:
             Mixer.setvolume(volume)
+        
+        #print(Mixer.getvolume())
 
         #Display the volume value on the screen
         cv2.putText(frame, "Volume:" +  str(volume), (5, 30), cv2.FONT_HERSHEY_PLAIN, 2, (255, 0, 255), 2) 
