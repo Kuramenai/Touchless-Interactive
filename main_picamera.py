@@ -1,4 +1,6 @@
 from hand_tracking_module import HandDetector
+from picamera.array import PiRGBArray 
+from picamera import PiCamera
 import time
 import cv2
 import math
@@ -12,20 +14,25 @@ def main():
 
   Mixer = alsaaudio.Mixer()
 
-  cap = cv2.VideoCapture(0, cv2.CAP_V4L2)
+  camera = PiCamera()
+  camera.rotation = 180
+  camera.resolution = (320, 240)
+  #camera.start_preview()
+  #camera.awb_mode = 'off'
+  #camera.awb_gains = (1.8, 1.5)
+  #camera.framerate = 10
+  #camera.exposure_mode = 'auto'
+  rawCapture = PiRGBArray(camera, size = (320, 240))
+
+  time.sleep(5)
+
+
   Detector = HandDetector(min_detection_confidence=0.7)
 
-  if not cap.isOpened():
-    print("Cannot open camera")
-    exit()
+  
+  for image  in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True):
 
-  while True:
-    success, frame = cap.read()
-
-    if not success:
-      print("Can't receive frame. Exiting...")
-      break
-
+    frame = image.array
     h, w, _ = frame.shape
 
     frame = Detector.find_hands(frame, draw=False)
@@ -57,15 +64,17 @@ def main():
     previous_time = current_time
 
     #Display the fps value on the screen
-    cv2.putText(frame, str(int(fps)), (10, 70), cv2.FONT_HERSHEY_PLAIN, 3, (255, 0, 255), 3)
+    cv2.putText(frame, str(int(fps)), (20, 70), cv2.FONT_HERSHEY_PLAIN, 3, (255, 0, 255), 3)
 
     cv2.imshow("Frame", frame)
 
     if cv2.waitKey(1) == ord('q'):
       break
 
-  cap.release()
+    rawCapture.truncate(0)
+    
   cv2.destroyAllWindows()
+
 
 if __name__ == "__main__":
   main()
