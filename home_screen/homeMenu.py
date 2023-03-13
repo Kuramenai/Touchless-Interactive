@@ -1,12 +1,13 @@
 from PyQt5.QtCore import Qt, QTimer
 from PyQt5.QtGui import QPainter
 from PyQt5.QtWidgets import QWidget, QGridLayout, QHBoxLayout, QButtonGroup, QSizePolicy
-from widgets.graphicsView import SingleImageGraphicsView
-from widgets.svgButton import SvgButton
+from home_screen.widgets.graphicsView import SingleImageGraphicsView
+from home_screen.widgets.svgButton import SvgButton
+from home_screen.widgets.aniButton import AniRadioButton
 
 class HomeMenu(QWidget):
     def __init__(self):
-        super.__init__()
+        super().__init__()
         self.__initVal()
         self.__initUi()
     
@@ -17,25 +18,25 @@ class HomeMenu(QWidget):
 
     def __initUi(self):
         self.__view = SingleImageGraphicsView()
-        self.__view.setAspectRatioMode(Qt.KeepAspectRatioByExpanding)
+        self.__view.setAspectRatioMode(Qt.KeepAspectRatio)
         self.__view.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.__view.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self.__view.setStyleSheet('QGraphicsView { background : transparant; border: none; }')
-        self.__viewInstallEventFilter(self)
+        self.__view.setStyleSheet('QGraphicsView { background : transparent; border: none; }')
+        self.__view.installEventFilter(self)
 
         # Previous and Next Buttons
         self.__btnGroup = QButtonGroup()
-        self.__btnGroup.buttonlicked.connect(self.showImageOfIdx)
+        self.__btnGroup.buttonClicked.connect(self.__showImageOfIndex)
 
         self.__btnWidget = QWidget()
 
-        self.__prevBtn = SvgButton()
+        self.__prevBtn = SvgButton(self)
         self.__prevBtn.setIcon('icons/left.svg')
         self.__prevBtn.setFixedSize(30, 50)
         self.__prevBtn.clicked.connect(self.__prev)
         self.__prevBtn.setEnabled(False)
 
-        self.__nextBtn = SvgButton()
+        self.__nextBtn = SvgButton(self)
         self.__nextBtn.setIcon('icons/right.svg')
         self.__nextBtn.setFixedSize(30, 50)
         self.__nextBtn.clicked.connect(self.__nextClicked)
@@ -56,7 +57,7 @@ class HomeMenu(QWidget):
         self.__timer = QTimer(self)
         self.__timer.setInterval(self.__interval)
         self.__timer.timeout.connect(self.__nextByTimer)
-        self.timer.start()
+        self.__timer.start()
     
     def __showImageOfIndex(self, btn):
         idx = self.__btnGroup.id(btn)
@@ -74,6 +75,11 @@ class HomeMenu(QWidget):
         if len(self.__filenames) > 0:
             self.__next()
     
+    def __nextClicked(self):
+        if len(self.__filenames) > 0 :
+            self.__next()
+            self.__timer.start()
+    
     def __next(self):
         idx = (self.__btnGroup.checkedId() + 1) % len(self.__btnGroup.buttons())
         self.__updateViewAndBtnBasedOnIdx(idx)
@@ -81,7 +87,7 @@ class HomeMenu(QWidget):
     def __updateViewAndBtnBasedOnIdx(self, idx):
         self.__btnGroup.button(idx).setChecked(True)
         self.__view.addPictureToScene(self.__filenames[idx])
-        self.prevNextBtnToggled(idx)
+        self.__prevNextBtnToggled(idx)
     
     def __prevNextBtnToggled(self, idx):
         self.__prevBtn.setEnabled(idx != 0)
@@ -91,7 +97,18 @@ class HomeMenu(QWidget):
         self.__timer.setInterval(milliseconds)
     
     def addPictures(self, filenames : list):
-        pass
+        self.__filenames = filenames
+        lay = QHBoxLayout()
+        for i in range(len(self.__filenames)):
+            btn = AniRadioButton()
+            btn.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
+            lay.addWidget(btn)
+            self.__btn.append(btn)
+            self.__btnGroup.addButton(btn, i)
+        
+        self.__btn[0].setChecked(True)
+        self.__view.addPictureToScene(self.__filenames[0])
+        self.__btnWidget.setLayout(lay)
 
     def setNavigationButtonVisible(self, f: bool):
         self.__navWidget.setVisible(f)
@@ -106,7 +123,7 @@ class HomeMenu(QWidget):
             self.__timer.stop()
     
     def setGradientEnabled(self, f: bool):
-        pass
+        self.__view.setGradientEnabled(f)
 
     def getButtonGroup(self):
         return self.__btnGroup
@@ -115,10 +132,10 @@ class HomeMenu(QWidget):
         return self.__btnWidget
     
     def getPrevBtn(self):
-        self.__prevBtn
+        return self.__prevBtn
 
     def getNextBtn(self):
-        self.__nextBtn
+        return self.__nextBtn
 
 
 
