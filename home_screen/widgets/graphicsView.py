@@ -11,17 +11,19 @@ class SingleImageGraphicsView(QGraphicsView):
         self.__initVal()
     
     def __initVal(self):
-        self._scene = QGraphicsScene()
+        self._scene = QGraphicsScene(0, 0, 400, 400)
         self._picture = QPixmap()
         self._item = ''
+        
     
     def addPictureToScene(self, filename:str):
         self._picture = QPixmap(filename)
-        self._scene = QGraphicsScene()
+        self._scene = QGraphicsScene(0, 0, 400, 400)
         self._item = self._scene.addPixmap(self._picture)
+        self._item.setPos(100, 100)
 
         self.setScene(self._scene)
-        self.fitInView(self._item, self.__aspectRatioMode)
+       
     
     def setAspectRatioMode(self, mode):
         self.__aspectRatioMode = mode
