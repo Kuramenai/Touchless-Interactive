@@ -71,8 +71,3 @@ class HomeScreen(QMainWindow):
     def printCurrentSelection(self):
         idx = self.btnGroup.checkedId()
         self.currentSelection.setText(self.__selections[idx])
-        
-  
-
-
-       
