@@ -1,5 +1,5 @@
 from fps_counter_module import FPS 
-from  webcam_video_stream import WebCamVideoStream
+from video_stream import VideoStream
 import argparse
 import cv2
 
@@ -37,7 +37,7 @@ cv2.destroyAllWindows()
 
 # Threaded
 print("[INFO] sampling THREADED frames from webcam...")
-ThreadedStream = WebCamVideoStream().start()
+ThreadedStream = VideoStream().start()
 MyFps_Threaded = FPS()
 MyFps_Threaded.start()
 

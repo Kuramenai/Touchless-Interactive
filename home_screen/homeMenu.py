@@ -64,6 +64,12 @@ class HomeMenu(QWidget):
         self.__view.addPictureToScene(self.__filenames[idx])
         self.__prevNextBtnToggled(idx)
         self.__timer.start()
+
+    def show_image_of_index_by_gesture_command(self, idx):
+        self.__view.addPictureToScene(self.__filenames[idx])
+        self.__prevNextBtnToggled(idx)
+        self.__btnGroup.button(idx).setChecked(True)
+        self.__timer.start()
     
     def __prev(self):
         if len(self.__filenames) > 0:

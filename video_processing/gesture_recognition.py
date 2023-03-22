@@ -1,12 +1,12 @@
 import copy
 import csv
-
 import cv2
 import time
 import numpy as np
 import itertools
 from video_processing.video_stream import VideoStream
 from video_processing.hand_tracking_module import HandDetector
+from video_processing.gesture_classification.gesture_classifier import GestureClassifier
 
 
 class GestureRecognition:
@@ -16,11 +16,13 @@ class GestureRecognition:
         self.mode = 0
         self.key = 0
         self.gesture_id = -1
+        self.detected_gesture_id = -1
         self.processed_landmarks = []
         self.labels = self.get_labels()
 
-        self.__videoStream = VideoStream(0)
+        self.videoStream = VideoStream(0)
         self.__detector = HandDetector()
+        self.__gestureClassifier = GestureClassifier()
 
     def select_mode(self):
         if 48 <= self.key <= 57:  # 0 ~ 9
@@ -30,18 +32,22 @@ class GestureRecognition:
         if self.key == ord('s'):  # s
             self.mode = 1
 
-    def __frame_processing(self, frame):
+    def frame_processing(self, frame):
         if frame is not None:
             h, w, _ = frame.shape
             frame = self.__detector.find_hands(frame, draw=True)
             landmarks = self.__detector.find_landmarks(frame, draw=False)
 
-            self.processed_landmarks = self.get_processed_landmarks(landmarks)
-            # self.calculate_bounding_rect(frame, landmarks)
+            if len(landmarks) != 0:
+                self.processed_landmarks = self.get_processed_landmarks(landmarks)
+                self.detected_gesture_id = self.__gestureClassifier(self.processed_landmarks)
+                # print(landmarks)
+                # print(len(self.processed_landmarks))
+                # self.calculate_bounding_rect(frame, landmarks)
+
             self.__fps = self.get_fps()
             # Display the fps value on the screen
             cv2.putText(frame, str(int(self.__fps)), (10, 70), cv2.FONT_HERSHEY_PLAIN, 3, (255, 0, 255), 3)
-
             cv2.imshow("Frame", frame)
         else:
             print("No frame detected")
@@ -55,7 +61,8 @@ class GestureRecognition:
 
     def get_labels(self):
         """Get the labels for the gestures"""
-        label_path = "C:/Users/marce/Documents/PycharmProjects/Touchless/video_processing/gesture_classification_models/gestures_labels.csv"
+        label_path = "C:/Users/marce/Documents/PycharmProjects/Touchless/video_processing" \
+                     "/gesture_classification/gestures_labels.csv"
         with open(label_path, encoding='utf-8-sig') as f:
             labels = csv.reader(f)
             labels = [row[0] for row in labels]
@@ -82,19 +89,17 @@ class GestureRecognition:
         """Calculate the positions of the landmarks relative to the wrist"""
         # Copy the landmarks list to prevent unwanted changes
         landmarks_copy = copy.deepcopy(landmarks)
-        # If wrist is detected calculate the other landmark point positions relative to it
-        if landmarks_copy:
-            if landmarks[0]:
-                wrist_xpos, wrist_ypos = landmarks[0][1], landmarks[0][2]
-                for index, landmark_point in enumerate(landmarks_copy):
-                    landmarks_copy[index][0] -= wrist_xpos
-                    landmarks_copy[index][1] -= wrist_ypos
-                landmarks_copy = list(itertools.chain.from_iterable(landmarks_copy))
-                # Find the greatest landmark point
-                max_value = max(list(map(abs, landmarks_copy)))
-                # Normalization
-                landmarks_copy = np.copy(landmarks_copy)
-                landmarks_copy = landmarks_copy/max_value
+        # calculate the other landmark point positions relative to the position of the wrist
+        wrist_xpos, wrist_ypos = landmarks[0][0], landmarks[0][1]
+        for index, landmark_point in enumerate(landmarks_copy):
+            landmarks_copy[index][0] -= wrist_xpos
+            landmarks_copy[index][1] -= wrist_ypos
+        landmarks_copy = list(itertools.chain.from_iterable(landmarks_copy))
+        # Find the greatest landmark point
+        max_value = max(list(map(abs, landmarks_copy)))
+        # Normalization
+        landmarks_copy = np.copy(landmarks_copy)
+        landmarks_copy = landmarks_copy/max_value
 
         return landmarks_copy
 
@@ -109,27 +114,27 @@ class GestureRecognition:
 
     def detect(self):
         """Detect gesture from video stream"""
-        self.__videoStream.start()
+        self.videoStream.start()
         while True:
-            frame = self.__videoStream.read()
-            self.__frame_processing(frame)
+            frame = self.videoStream.read()
+            self.frame_processing(frame)
 
             self.key = cv2.waitKey(1)
             if self.key == ord('q'):
-                self.__videoStream.stop()
+                self.videoStream.stop()
                 break
 
         cv2.destroyAllWindows()
 
     def get_gesture_landmarks(self):
-        self.__videoStream.start()
+        self.videoStream.start()
         while True:
-            frame = self.__videoStream.read()
-            self.__frame_processing(frame)
+            frame = self.videoStream.read()
+            self.frame_processing(frame)
 
             self.key = cv2.waitKey(1)
             if self.key == ord('q'):
-                self.__videoStream.stop()
+                self.videoStream.stop()
                 break
 
             self.select_mode()
