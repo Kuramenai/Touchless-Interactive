@@ -8,6 +8,8 @@ path = 'C:/Users/marce/Documents/PycharmProjects/Touchless/video_processing' \
 
 alternate_path = 'trained_models/index_finger_movement_classifier/point_history_classifier.tflite'
 
+original_model_path = 'C:/Users/marce/Documents/PycharmProjects/hand-gesture-recognition-mediapipe/model' \
+                      '/point_history_classifier/point_history_classifier.tflite'
 
 class PointHistoryClassifier(object):
     def __init__(
@@ -17,7 +19,7 @@ class PointHistoryClassifier(object):
         invalid_value=0,
         num_threads=1,
     ):
-        self.interpreter = tf.lite.Interpreter(model_path=model_path,
+        self.interpreter = tf.lite.Interpreter(model_path=original_model_path,
                                                num_threads=num_threads)
 
         self.interpreter.allocate_tensors()

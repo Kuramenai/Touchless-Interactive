@@ -21,6 +21,9 @@ index_finger_movement_labels_path = "C:/Users/marce/Documents/PycharmProjects/To
 
 alternate_index_finger_movement_labels_path = 'labels/point_history_classifier_labels.csv'
 
+ori_index_finger_movement_labels_path  = 'C:/Users/marce/Documents/PycharmProjects/hand-gesture-recognition-mediapipe/model' \
+                      '/point_history_classifier/point_history_classifier_label.csv'
+
 
 class GestureRecognition:
     def __init__(self):
@@ -31,12 +34,13 @@ class GestureRecognition:
         self.gesture_id = -1
         self.detected_gesture_id = -1
         self.index_finger_movement_id = -1
+        self.index_finger_movement_stopped = False
 
         self.processed_landmarks = []
         self.processed_points_history = []
 
         self.gesture_labels = self.get_labels(gesture_labels_path)
-        self.index_finger_movement_labels = self.get_labels(index_finger_movement_labels_path)
+        self.index_finger_movement_labels = self.get_labels(ori_index_finger_movement_labels_path)
 
         self.history_length = 16
         self.point_history = deque(maxlen=self.history_length)
@@ -56,6 +60,7 @@ class GestureRecognition:
             self.mode = 1
 
     def frame_processing(self, frame):
+
         if frame is not None:
             h, w, _ = frame.shape
             frame = self.__detector.find_hands(frame, draw=True)
@@ -74,15 +79,9 @@ class GestureRecognition:
 
                 if len(self.processed_points_history) == self.history_length * 2:
                     self.index_finger_movement_id = self.__indexMovementClassifier(self.processed_points_history)
-                    print(self.index_finger_movement_id)
-                    # print(self.index_finger_movement_labels[self.index_finger_movement_id])
-
-            # Calculate and display the fps value on the screen
-            self.__fps = self.get_fps()
-            cv2.putText(frame, str(int(self.__fps)), (10, 70), cv2.FONT_HERSHEY_PLAIN, 3, (255, 0, 255), 3)
-            cv2.imshow("Frame", frame)
-        else:
-            print("No frame detected")
+                    self.finger_gesture_history.append(self.index_finger_movement_id)
+                    # if self.index_finger_movement_id == 4:
+                    self.index_finger_movement_stopped = True
 
     def get_fps(self):
         """Calculate the frame rate of the pipeline"""
@@ -157,7 +156,8 @@ class GestureRecognition:
 
     def save_landmarks(self):
         """Save landmarks points for training"""
-        dataset_path = "C:/Users/marce/Documents/PycharmProjects/Touchless/video_processing/gesture_classification_models/gesture_landmarks_dataset2.csv"
+        dataset_path = "C:/Users/marce/Documents/PycharmProjects/Touchless/video_processing" \
+                       "/gesture_classification_models/gesture_landmarks_dataset2.csv"
         if self.mode == 1 and (0 <= self.gesture_id <= 9):
             with open(dataset_path,
                       mode='a', newline="") as f:
