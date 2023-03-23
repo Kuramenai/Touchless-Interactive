@@ -38,7 +38,10 @@ class GestureRecognitionThread(QThread):
             frame = self.gestureRecognition.videoStream.read()
             self.gestureRecognition.frame_processing(frame)
             gesture_detected_id = self.gestureRecognition.detected_gesture_id
-            if gesture_detected_id != -1:
+
+            if gesture_detected_id == 3:
+                pass
+            elif gesture_detected_id != -1:
                 self.gesture_detected.emit(gesture_detected_id)
 
             key = cv2.waitKey(1)

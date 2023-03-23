@@ -4,9 +4,22 @@ import cv2
 import time
 import numpy as np
 import itertools
+from collections import deque
+from collections import Counter
 from video_processing.video_stream import VideoStream
 from video_processing.hand_tracking_module import HandDetector
 from video_processing.gesture_classification.gesture_classifier import GestureClassifier
+from video_processing.gesture_classification.index_finger_movement_classifier import PointHistoryClassifier
+
+gesture_labels_path = "C:/Users/marce/Documents/PycharmProjects/Touchless/video_processing" \
+             "/gesture_classification/labels/gestures_labels.csv"
+
+alternate_gestures_labels_path = 'labels/gestures_labels.csv'
+
+index_finger_movement_labels_path = "C:/Users/marce/Documents/PycharmProjects/Touchless/video_processing" \
+             "/gesture_classification/labels/point_history_classifier_labels.csv"
+
+alternate_index_finger_movement_labels_path = 'labels/point_history_classifier_labels.csv'
 
 
 class GestureRecognition:
@@ -17,12 +30,22 @@ class GestureRecognition:
         self.key = 0
         self.gesture_id = -1
         self.detected_gesture_id = -1
+        self.index_finger_movement_id = -1
+
         self.processed_landmarks = []
-        self.labels = self.get_labels()
+        self.processed_points_history = []
+
+        self.gesture_labels = self.get_labels(gesture_labels_path)
+        self.index_finger_movement_labels = self.get_labels(index_finger_movement_labels_path)
+
+        self.history_length = 16
+        self.point_history = deque(maxlen=self.history_length)
+        self.finger_gesture_history = deque(maxlen=self.history_length)
 
         self.videoStream = VideoStream(0)
         self.__detector = HandDetector()
         self.__gestureClassifier = GestureClassifier()
+        self.__indexMovementClassifier = PointHistoryClassifier()
 
     def select_mode(self):
         if 48 <= self.key <= 57:  # 0 ~ 9
@@ -40,13 +63,22 @@ class GestureRecognition:
 
             if len(landmarks) != 0:
                 self.processed_landmarks = self.get_processed_landmarks(landmarks)
-                self.detected_gesture_id = self.__gestureClassifier(self.processed_landmarks)
-                # print(landmarks)
-                # print(len(self.processed_landmarks))
-                # self.calculate_bounding_rect(frame, landmarks)
+                self.processed_points_history = self.get_processed_points_history(frame, self.point_history)
 
+                self.detected_gesture_id = self.__gestureClassifier(self.processed_landmarks)
+
+                if self.detected_gesture_id == 2:  # Pointer Mode:
+                    self.point_history.append(landmarks[8])
+                else:
+                    self.point_history.append([0, 0])
+
+                if len(self.processed_points_history) == self.history_length * 2:
+                    self.index_finger_movement_id = self.__indexMovementClassifier(self.processed_points_history)
+                    print(self.index_finger_movement_id)
+                    # print(self.index_finger_movement_labels[self.index_finger_movement_id])
+
+            # Calculate and display the fps value on the screen
             self.__fps = self.get_fps()
-            # Display the fps value on the screen
             cv2.putText(frame, str(int(self.__fps)), (10, 70), cv2.FONT_HERSHEY_PLAIN, 3, (255, 0, 255), 3)
             cv2.imshow("Frame", frame)
         else:
@@ -59,11 +91,9 @@ class GestureRecognition:
         self.__previous_time = self.__current_time
         return fps
 
-    def get_labels(self):
+    def get_labels(self, path):
         """Get the labels for the gestures"""
-        label_path = "C:/Users/marce/Documents/PycharmProjects/Touchless/video_processing" \
-                     "/gesture_classification/gestures_labels.csv"
-        with open(label_path, encoding='utf-8-sig') as f:
+        with open(path, encoding='utf-8-sig') as f:
             labels = csv.reader(f)
             labels = [row[0] for row in labels]
 
@@ -102,6 +132,28 @@ class GestureRecognition:
         landmarks_copy = landmarks_copy/max_value
 
         return landmarks_copy
+
+    def get_processed_points_history(self, image, point_history):
+        image_width, image_height = image.shape[1], image.shape[0]
+
+        temp_point_history = copy.deepcopy(point_history)
+
+        # Convert to relative coordinates
+        base_x, base_y = 0, 0
+        for index, point in enumerate(temp_point_history):
+            if index == 0:
+                base_x, base_y = point[0], point[1]
+
+            temp_point_history[index][0] = (temp_point_history[index][0] -
+                                            base_x) / image_width
+            temp_point_history[index][1] = (temp_point_history[index][1] -
+                                            base_y) / image_height
+
+        # Convert to a one-dimensional list
+        temp_point_history = list(
+            itertools.chain.from_iterable(temp_point_history))
+
+        return temp_point_history
 
     def save_landmarks(self):
         """Save landmarks points for training"""
