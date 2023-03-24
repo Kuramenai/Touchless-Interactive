@@ -9,6 +9,7 @@ class VideoStream:
         self.__camera_index = camera_index
         self.__success, self.__frame = None, None
         self.__stop = False
+        self.stream_started = False
 
         self.__stream = cv2.VideoCapture(camera_index)
         self.__stream_success = self.__is_stream_success()
@@ -26,7 +27,7 @@ class VideoStream:
             print("Video Stream Started!")
             self.__success, self.__frame = self.__stream.read()
             if self.__success:
-                pass
+                self.stream_started = True
             else:
                 print("No Frame detected")
         else:

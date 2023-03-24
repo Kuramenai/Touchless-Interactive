@@ -69,8 +69,7 @@ class HomeMenu(QWidget):
         self.__view.addPictureToScene(self.__filenames[idx])
         self.__prevNextBtnToggled(idx)
         self.__btnGroup.button(idx).setChecked(True)
-        self.__timer.start()
-    
+
     def __prev(self):
         if len(self.__filenames) > 0:
             idx = max(0, self.__btnGroup.checkedId() - 1)

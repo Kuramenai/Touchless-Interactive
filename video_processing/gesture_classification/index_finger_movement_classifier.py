@@ -14,12 +14,12 @@ original_model_path = 'C:/Users/marce/Documents/PycharmProjects/hand-gesture-rec
 class PointHistoryClassifier(object):
     def __init__(
         self,
-        model_path= path,
+        model_path=path,
         score_th=0.5,
         invalid_value=0,
         num_threads=1,
     ):
-        self.interpreter = tf.lite.Interpreter(model_path=original_model_path,
+        self.interpreter = tf.lite.Interpreter(model_path=model_path,
                                                num_threads=num_threads)
 
         self.interpreter.allocate_tensors()

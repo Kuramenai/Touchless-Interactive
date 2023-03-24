@@ -40,7 +40,7 @@ class GestureRecognition:
         self.processed_points_history = []
 
         self.gesture_labels = self.get_labels(gesture_labels_path)
-        self.index_finger_movement_labels = self.get_labels(ori_index_finger_movement_labels_path)
+        self.index_finger_movement_labels = self.get_labels(index_finger_movement_labels_path)
 
         self.history_length = 16
         self.point_history = deque(maxlen=self.history_length)
