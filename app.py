@@ -22,8 +22,6 @@ class PiMediaCenter(QMainWindow):
         self.detection.open_app.connect(self.launch_app)
         self.detection.gesture_detected.connect(self.gesture_detection_handler)
 
-        # Restrict the number of times we can handle an emitted signal
-        # Prevent Flickering
         self.flag = 0
 
     def launch_app(self, stream_started):
@@ -50,6 +48,8 @@ class PiMediaCenter(QMainWindow):
                 new_idx = (idx + 1) % 3
                 self.homeScreen.homeMenu.show_image_of_index_by_gesture_command(new_idx)
 
+        # Restrict the number of times we can handle an emitted signal
+        # Prevent Flickering
         self.flag += 1
         if self.flag == 15:
             self.flag = 0

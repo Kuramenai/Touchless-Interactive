@@ -77,8 +77,9 @@ class HomeMenu(QWidget):
             self.__timer.start()
     
     def __nextByTimer(self):
-        if len(self.__filenames) > 0:
-            self.__next()
+        pass
+        # if len(self.__filenames) > 0:
+        #     self.__next()
     
     def __nextClicked(self):
         if len(self.__filenames) > 0 :

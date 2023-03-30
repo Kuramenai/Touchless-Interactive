@@ -17,7 +17,7 @@ class HomeScreen(QMainWindow):
     def __init_attr(self):
         self.__welcomeMessage = QLabel()
         self.homeMenu = HomeMenu()
-        self.selections = ['PICTURES', 'MUSIC', 'VIDEOS']
+        self.selections = ['IMAGES', 'MUSIC', 'VIDEOS']
         self.currentSelection = QLabel()
         self.userDetectedGesture = QLabel()
         self.btnGroup = self.homeMenu.getButtonGroup()
