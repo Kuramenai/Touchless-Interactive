@@ -6,7 +6,7 @@ from PyQt5.QtWidgets import QWidget, QMainWindow, QLabel, QGridLayout, \
     QBoxLayout, QScrollArea, QApplication, QPushButton
 from PyQt5.QtGui import QPixmap, QIcon
 
-images_path = './images/'
+images_path = '../images_window/images/'
 
 
 def is_image_file(filename):
@@ -24,39 +24,40 @@ def is_image_file(filename):
 
 
 class MainViewer(QWidget):
-    def __init__(self):
+    def __init__(self, first_image):
         super().__init__()
         self.width, self.height = 960, 540
-        self.__init_ui()
+        self.image_label = QLabel(self)
+        self.pixmap = QPixmap()
+        self.__init_ui(first_image)
 
-    def __init_ui(self):
+    def __init_ui(self, first_image):
         self.setFixedSize(self.width, self.height)
+        self.load_image(first_image)
         # self.show()
 
     def load_image(self, image_path):
         self.pixmap = QPixmap(image_path)
         self.pixmap = \
             self.pixmap.scaled(QSize(self.width, self.height), Qt.KeepAspectRatioByExpanding, Qt.SmoothTransformation)
-        self.image_label = QLabel(self)
         self.image_label.setPixmap(self.pixmap)
 
 
 class ImagesThumbnails(QWidget):
-    def __init__(self, album_path, viewer_display):
+    def __init__(self, album_path):
         super().__init__()
-        self.__init_attributes(album_path, viewer_display)
+        self.__init_attributes(album_path)
         self.__init_ui()
 
-    def __init_attributes(self, album_path, viewer_display):
+    def __init_attributes(self, album_path):
         self.album_path = album_path
         self.album = [img for img in listdir(album_path) if isfile(join(album_path, img))]
         self.first_image_file_name = self.album[0] if self.album else None
-        self.viewer_display = viewer_display
 
     def __init_ui(self):
 
         layout = QGridLayout(self)
-        layout.setHorizontalSpacing(30)
+        layout.setHorizontalSpacing(20)
 
         column_index = 0
 
@@ -77,25 +78,22 @@ class ImagesThumbnails(QWidget):
 
                 column_index += 1
 
-        self.viewer_display.load_image(images_path + self.first_image_file_name)
-
-        self.setLayout(layout)
+        # self.setLayout(layout)
         # self.show()
-
-    def on_thumbnail_click(self, event, index, file_path):
-        self.viewer_display.load_image(file_path)
-        print(file_path)
 
 
 class ImageViewer(QMainWindow):
-    def __init__(self):
+    def __init__(self, album_path):
         super().__init__()
-        self.__init_attributes()
+        self.__init_attributes(album_path)
         self.__init_ui()
 
-    def __init_attributes(self):
-        self.viewer = MainViewer()
-        self.thumbnails = ImagesThumbnails(images_path, self.viewer)
+    def __init_attributes(self, album_path):
+        self.album_path = album_path
+        self.thumbnails = ImagesThumbnails(album_path)
+        self.first_image_path = self.album_path + self.thumbnails.first_image_file_name
+        self.viewer = MainViewer(self.first_image_path)
+        self.index = 0
         self.image_viewer_widget = QWidget()
 
     def __init_ui(self):
@@ -104,16 +102,21 @@ class ImageViewer(QMainWindow):
         layout = QGridLayout(self)
         layout.addWidget(self.viewer, 0, 0, Qt.AlignTop | Qt.AlignCenter)
         layout.addWidget(self.thumbnails, 1, 0, Qt.AlignBottom | Qt.AlignCenter)
-        layout.setVerticalSpacing(500)
+        layout.setVerticalSpacing(30)
 
         self.image_viewer_widget.setLayout(layout)
         self.setCentralWidget(self.image_viewer_widget)
         self.show()
 
+    def gesture_handler(self, gesture_id):
+        if gesture_id == 30:  # Move Left:
+            self.index = (self.index - 1) % len(self.thumbnails.album)
+            self.viewer.load_image(self.album_path + self.thumbnails.album[self.index])
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     # viewer = ImagesThumbnails(images_path)
-    viewer = ImageViewer()
     # viewer = MainViewer('./images/kamehameha3xkaioken.png')
+    viewer = ImageViewer(images_path)
     app.exec_()

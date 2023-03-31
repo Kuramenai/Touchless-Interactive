@@ -5,6 +5,7 @@ from home_screen.widgets.graphicsView import SingleImageGraphicsView
 from home_screen.widgets.svgButton import SvgButton
 from home_screen.widgets.aniButton import AniRadioButton
 
+
 class HomeMenu(QWidget):
     def __init__(self):
         super().__init__()
