@@ -92,8 +92,8 @@ class GestureRecognitionThread(QThread):
                         elif most_common_fg_id[0][0] == 1:
                             print("Signal Received. Moving to right...")
                             self.gesture_detected.emit(30 + most_common_fg_id[0][0])
-                    else:
-                        self.gesture_detected.emit(gesture_detected_id)
+                else:
+                    self.gesture_detected.emit(gesture_detected_id)
 
                 # Calculate and display the fps value on the screen
                 fps = self.gestureRecognition.get_fps()

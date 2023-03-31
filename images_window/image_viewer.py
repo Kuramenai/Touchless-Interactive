@@ -112,6 +112,13 @@ class ImageViewer(QMainWindow):
         if gesture_id == 30:  # Move Left:
             self.index = (self.index - 1) % len(self.thumbnails.album)
             self.viewer.load_image(self.album_path + self.thumbnails.album[self.index])
+        elif gesture_id == 31:  # Move Right:
+            self.index = (self.index + 1) % len(self.thumbnails.album)
+            self.viewer.load_image(self.album_path + self.thumbnails.album[self.index])
+        elif gesture_id == 1: # Close Window
+            print("Closing")
+            self.close()
+
 
 
 if __name__ == "__main__":
