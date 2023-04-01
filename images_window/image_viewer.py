@@ -1,4 +1,5 @@
 import sys
+import settings
 from os import listdir
 from os.path import isfile, join
 from PyQt5.QtCore import Qt, QSize
@@ -78,9 +79,6 @@ class ImagesThumbnails(QWidget):
 
                 column_index += 1
 
-        # self.setLayout(layout)
-        # self.show()
-
 
 class ImageViewer(QMainWindow):
     def __init__(self, album_path):
@@ -106,7 +104,6 @@ class ImageViewer(QMainWindow):
 
         self.image_viewer_widget.setLayout(layout)
         self.setCentralWidget(self.image_viewer_widget)
-        self.show()
 
     def gesture_handler(self, gesture_id):
         if gesture_id == 30:  # Move Left:
@@ -115,8 +112,8 @@ class ImageViewer(QMainWindow):
         elif gesture_id == 31:  # Move Right:
             self.index = (self.index + 1) % len(self.thumbnails.album)
             self.viewer.load_image(self.album_path + self.thumbnails.album[self.index])
-        elif gesture_id == 1: # Close Window
-            print("Closing")
+        elif gesture_id == 1:  # Close Window
+            settings.current_window = 0
             self.close()
 
 

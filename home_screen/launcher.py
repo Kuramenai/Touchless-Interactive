@@ -1,11 +1,14 @@
 import sys
-
+import settings
 from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QWidget, QHBoxLayout, QVBoxLayout, \
      QLabel, QButtonGroup, QFrame
 from PyQt5.QtCore import QSize, Qt
 from PyQt5.QtGui import QPalette, QColor, QFont
 
 from home_screen.homeMenu import HomeMenu
+from images_window.image_viewer import ImageViewer
+
+album_path = './images_window/images/'
 
 
 class HomeScreen(QMainWindow):
@@ -22,15 +25,16 @@ class HomeScreen(QMainWindow):
         self.userDetectedGesture = QLabel()
         self.btnGroup = self.homeMenu.getButtonGroup()
         self.__myHomeWidget = QWidget()
+        self.image_viewer = ImageViewer(album_path)
 
     def __init_ui(self):
         self.setWindowTitle("Pi Media Center")
         self.setFixedSize(QSize(1080, 720))
-      
+
         # Welcome Message
         self.__welcomeMessage.setText("Welcome to Pi Media Center")
         self.__welcomeMessage.setFont(QFont("Goudy Old Style", 20))
-        self.__welcomeMessage.setAlignment(Qt.AlignCenter|Qt.AlignTop)
+        self.__welcomeMessage.setAlignment(Qt.AlignCenter | Qt.AlignTop)
 
         # Menu
         self.__load_menu()
@@ -64,8 +68,7 @@ class HomeScreen(QMainWindow):
     def __load_menu(self):
 
         icons_dir = 'home_screen/icons'
-        self.homeMenu.addPictures([f'{icons_dir}/pictures_r.png', f'{icons_dir}/music_r.png', \
-                                     f'{icons_dir}/movies_r.png'])
+        self.homeMenu.addPictures([f'{icons_dir}/pictures_r.png', f'{icons_dir}/music_r.png', f'{icons_dir}/movies_r.png'])
         
         for btn in self.homeMenu.getButtonGroup().buttons():
             btn.setFixedSize(40, 20)
@@ -79,6 +82,19 @@ class HomeScreen(QMainWindow):
         idx = self.btnGroup.checkedId()
         self.currentSelection.setText(self.selections[idx])
 
+    def gesture_handler(self, gesture_id):
+        btnGroup = self.homeMenu.getButtonGroup()
+        idx = btnGroup.checkedId()
+        if gesture_id == 3:
+            if idx == 0:
+                settings.current_window = 1
+                self.image_viewer.setVisible(True)
+        elif gesture_id == 30:
+            new_idx = (idx - 1) % 3
+            self.homeMenu.show_image_of_index_by_gesture_command(new_idx)
+        elif gesture_id == 31:
+            new_idx = (idx + 1) % 3
+            self.homeMenu.show_image_of_index_by_gesture_command(new_idx)
+
     def display_current_selection_by_gesture_command(self, idx):
         self.currentSelection.setText(self.selections[idx])
-

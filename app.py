@@ -1,5 +1,6 @@
 import sys
 import cv2
+import settings
 from collections import Counter
 from PyQt5.QtWidgets import QApplication, QMainWindow
 from PyQt5.QtCore import QSize, QThread, pyqtSignal
@@ -7,17 +8,19 @@ from home_screen.launcher import HomeScreen
 from images_window.image_viewer import ImageViewer
 from video_processing.gesture_recognition import GestureRecognition
 
-album_path = './images_window/images/'
-
 
 class PiMediaCenter(QMainWindow):
     def __init__(self):
         super().__init__()
+        self.flickering_flag = 0
+        self.current_window = 0
         self.__initUI()
 
     def __initUI(self):
         self.setWindowTitle("Pi Media Center")
         self.setFixedSize(QSize(1080, 720))
+
+        self.homeScreen = HomeScreen()
 
         # Start gesture recognition in the background
         self.detection = GestureRecognitionThread()
@@ -25,14 +28,10 @@ class PiMediaCenter(QMainWindow):
         self.detection.open_app.connect(self.launch_app)
         self.detection.gesture_detected.connect(self.gesture_detection_handler)
 
-        self.flag = 0
-
     def launch_app(self, stream_started):
         if stream_started:
             # Load Window
-            # self.homeScreen = HomeScreen()
-            self.viewer = ImageViewer(album_path)
-            self.setCentralWidget(self.viewer)
+            self.setCentralWidget(self.homeScreen)
             self.show()
         else:
             "Exit app"
@@ -40,26 +39,21 @@ class PiMediaCenter(QMainWindow):
 
     def gesture_detection_handler(self, gesture_id):
 
-        # btnGroup = self.homeScreen.homeMenu.getButtonGroup()
-        # idx = btnGroup.checkedId()
-        if self.flag == 0:
-        #     if gesture_id == 3:
-        #         self.detection.thread_active = False
-        #         self.close()
-        #     elif gesture_id == 30:
-        #         new_idx = (idx - 1) % 3
-        #         self.homeScreen.homeMenu.show_image_of_index_by_gesture_command(new_idx)
-        #     elif gesture_id == 31:
-        #         new_idx = (idx + 1) % 3
-        #         self.homeScreen.homeMenu.show_image_of_index_by_gesture_command(new_idx)
-
-            self.viewer.gesture_handler(gesture_id)
+        if self.flickering_flag == 0:
+            if settings.current_window == 0:
+                self.homeScreen.gesture_handler(gesture_id)
+            elif settings.current_window == 1:
+                self.homeScreen.image_viewer.gesture_handler(gesture_id)
+            elif settings.current_window == 2:
+                pass
+            elif settings.current_window == 3:
+                pass
 
         # Restrict the number of times we can handle an emitted signal
         # Prevent Flickering
-        self.flag += 1
-        if self.flag == 15:
-            self.flag = 0
+        self.flickering_flag += 1
+        if self.flickering_flag == 15:
+            self.flickering_flag = 0
 
 
 class GestureRecognitionThread(QThread):
@@ -118,7 +112,7 @@ class GestureRecognitionThread(QThread):
 if __name__ == "__main__":
 
     app = QApplication(sys.argv)
-
+    settings.window_manager()
     window = PiMediaCenter()
 
     app.exec_()
