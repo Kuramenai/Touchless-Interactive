@@ -16,7 +16,7 @@ def is_image_file(filename):
         ['bmp', 'gif', 'jpg', 'jpeg', 'png', 'pbm', 'pgm', 'ppm', 'xbm', 'xpm']
     if len(filename.split('.')) == 2:
         filename_extension = filename.split('.')[1]
-        if filename_extension in valid_img_extensions:
+        if filename_extension.lower() in valid_img_extensions:
             return True
         else:
             return False
@@ -27,20 +27,21 @@ def is_image_file(filename):
 class MainViewer(QWidget):
     def __init__(self, first_image):
         super().__init__()
-        self.width, self.height = 960, 540
+        self.width, self.height = 970, 550
         self.image_label = QLabel(self)
         self.pixmap = QPixmap()
         self.__init_ui(first_image)
 
     def __init_ui(self, first_image):
         self.setFixedSize(self.width, self.height)
+        self.setStyleSheet("padding: 5px; border-radius: 5px; background-color: white;")
         self.load_image(first_image)
         # self.show()
 
     def load_image(self, image_path):
         self.pixmap = QPixmap(image_path)
         self.pixmap = \
-            self.pixmap.scaled(QSize(self.width, self.height), Qt.KeepAspectRatioByExpanding, Qt.SmoothTransformation)
+            self.pixmap.scaled(QSize(self.width - 10, self.height - 10), Qt.IgnoreAspectRatio, Qt.SmoothTransformation)
         self.image_label.setPixmap(self.pixmap)
 
 
@@ -57,25 +58,25 @@ class ImagesThumbnails(QWidget):
 
     def __init_ui(self):
 
-        layout = QGridLayout(self)
-        layout.setHorizontalSpacing(20)
+        self.layout = QGridLayout(self)
+        self.layout.setHorizontalSpacing(10)
 
         column_index = 0
 
         for image_file_name in self.album:
             if is_image_file(image_file_name):
+                image_container = QWidget()
+                image_container.setFixedSize(QSize(100, 100))
+                # image_container.setStyleSheet("padding: 5px;")
 
-                image_label = QLabel()
+                image_label = QLabel(image_container)
                 image_label.setAlignment(Qt.AlignCenter)
 
                 image_path = self.album_path + image_file_name
                 pixmap = QPixmap(image_path)
-                pixmap = pixmap.scaled(QSize(100, 100), Qt.KeepAspectRatio, Qt.SmoothTransformation)
+                pixmap = pixmap.scaled(QSize(95, 95), Qt.KeepAspectRatio, Qt.SmoothTransformation)
                 image_label.setPixmap(pixmap)
-                image_label.mousePressEvent = lambda e, index=column_index, file_path=image_path:\
-                    self.on_thumbnail_click(e, index, file_path)
-
-                layout.addWidget(image_label, 0, column_index, Qt.AlignCenter)
+                self.layout.addWidget(image_container, 0, column_index, Qt.AlignCenter)
 
                 column_index += 1
 
@@ -95,15 +96,24 @@ class ImageViewer(QMainWindow):
         self.image_viewer_widget = QWidget()
 
     def __init_ui(self):
+        self.setWindowTitle("Pi Media Center")
         self.setFixedSize(QSize(1080, 720))
+
+        thumbnails_nav = QScrollArea()
+        thumbnails_nav.setFixedHeight(100)
+        thumbnails_nav.horizontalScrollBar().setStyleSheet("QScrollBar {height:0px;}")
+        thumbnails_nav.verticalScrollBar().setStyleSheet("QScrollBar {width:0px;}")
+        thumbnails_nav.setStyleSheet("background-color: white; border-radius: 5px;")
+        thumbnails_nav.setWidget(self.thumbnails)
 
         layout = QGridLayout(self)
         layout.addWidget(self.viewer, 0, 0, Qt.AlignTop | Qt.AlignCenter)
-        layout.addWidget(self.thumbnails, 1, 0, Qt.AlignBottom | Qt.AlignCenter)
+        layout.addWidget(thumbnails_nav, 1, 0, Qt.AlignBottom | Qt.AlignCenter)
         layout.setVerticalSpacing(30)
 
         self.image_viewer_widget.setLayout(layout)
         self.setCentralWidget(self.image_viewer_widget)
+        # self.show()
 
     def gesture_handler(self, gesture_id):
         if gesture_id == 30:  # Move Left:
@@ -115,7 +125,6 @@ class ImageViewer(QMainWindow):
         elif gesture_id == 1:  # Close Window
             settings.current_window = 0
             self.close()
-
 
 
 if __name__ == "__main__":
