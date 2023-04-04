@@ -7,8 +7,10 @@ from PyQt5.QtGui import QPalette, QColor, QFont
 
 from home_screen.homeMenu import HomeMenu
 from images_window.image_viewer import ImageViewer
+from music_player.music_player import MusicPlayer
 
 album_path = './images_window/images/'
+audio_album_path = './music_player/music_album/'
 
 
 class HomeScreen(QMainWindow):
@@ -26,6 +28,8 @@ class HomeScreen(QMainWindow):
         self.btnGroup = self.homeMenu.getButtonGroup()
         self.__myHomeWidget = QWidget()
         self.image_viewer = ImageViewer(album_path)
+        self.music_player = MusicPlayer(audio_album_path)
+        self.video_layer = ''
 
     def __init_ui(self):
         self.setWindowTitle("Pi Media Center")
@@ -89,6 +93,12 @@ class HomeScreen(QMainWindow):
             if idx == 0:
                 settings.current_window = 1
                 self.image_viewer.setVisible(True)
+            elif idx == 1:
+                settings.current_window = 2
+                self.music_player.setVisible(True)
+            elif idx == 2:
+                pass
+
         elif gesture_id == 30:
             new_idx = (idx - 1) % 3
             self.homeMenu.show_image_of_index_by_gesture_command(new_idx)

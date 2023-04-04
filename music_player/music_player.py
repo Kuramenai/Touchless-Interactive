@@ -8,8 +8,6 @@ from PyQt5.QtGui import QPixmap
 from PyQt5.QtMultimedia import QMediaPlayer, QMediaContent, QAudioInput
 from PyQt5.QtMultimediaWidgets import QVideoWidget
 
-my_music_album_path = "../music_player/music_album/"
-
 
 def is_music_file(filename):
     """Check if filename is an audio file"""
@@ -58,6 +56,7 @@ class MediaPlayerWidget(QWidget):
 
         self.volume_slider = QSlider()
         self.volume_slider.setOrientation(Qt.Horizontal)
+        self.volume_slider.setRange(0, 100)
 
         layout.addWidget(self.prev_btn, 0, 0, Qt.AlignCenter)
         layout.addWidget(self.play_btn, 0, 1, Qt.AlignCenter)
@@ -103,22 +102,25 @@ class MyPlaylistWidget(QWidget):
 
 
 class MusicPlayer(QMainWindow):
-    def __init__(self):
+    def __init__(self, music_album_path):
         super().__init__()
-        self.__init_attr()
+        self.__init_attr(music_album_path)
         self.__init_ui()
-        self.play_audio_file(self.playing_now)
+        self.load_audio_file(self.playing_now)
 
-    def __init_attr(self):
-        self.playlistWidget = MyPlaylistWidget(my_music_album_path)
+    def __init_attr(self, music_album_path):
+        self.music_album_path = music_album_path
+
+        self.playlistWidget = MyPlaylistWidget(self.music_album_path)
         self.musicIcon = QLabel(self)
         self.musicTitle = QLabel(self)
         self.mediaPlayerWidget = MediaPlayerWidget()
         self.mediaPlayer = QMediaPlayer()
         self.musicPlayerWidget = QWidget()
 
+        self.index = 0
         self.playing_now = self.playlistWidget.first_audio_file_name
-        self.wave_file_length = 0
+        self.audio_file_length = 0
 
     def __init_ui(self):
         self.setWindowTitle("Pi Media Center")
@@ -126,15 +128,19 @@ class MusicPlayer(QMainWindow):
 
         self.mediaPlayer.durationChanged.connect(self.set_slider_duration)
         self.mediaPlayer.positionChanged.connect(self.set_slider_position)
+        self.mediaPlayer.stateChanged.connect(self.set_pause_icon)
+
+        self.mediaPlayerWidget.volume_slider.setValue(self.mediaPlayer.volume())
 
         vboxLayout = QVBoxLayout()
         vboxLayout.setContentsMargins(30, 50, 30, 50)
         vboxLayout.setSpacing(10)
 
         self.musicTitle.setText(self.playing_now)
-        pixmap = QPixmap('music_icon.png')
+
+        pixmap = QPixmap('./global_icons/music_icon.png')
         pixmap = pixmap.scaled(QSize(426, 327), Qt.KeepAspectRatio, Qt.SmoothTransformation)
-        self.musicIcon  .setPixmap(pixmap)
+        self.musicIcon.setPixmap(pixmap)
 
         vboxLayout.addWidget(self.musicIcon)
         vboxLayout.addWidget(self.musicTitle)
@@ -148,30 +154,47 @@ class MusicPlayer(QMainWindow):
         self.musicPlayerWidget.setLayout(hboxLayout)
         self.setCentralWidget(self.musicPlayerWidget)
 
-    def play_audio_file(self, audio_file_name):
-        full_file_path = my_music_album_path + audio_file_name
+    def load_audio_file(self, audio_file_name):
+        full_file_path = self.music_album_path + audio_file_name
         audio_url = QUrl.fromLocalFile(full_file_path)
         content = QMediaContent(audio_url)
         self.mediaPlayer.setMedia(content)
-        if self.mediaPlayer.state() == QMediaPlayer.StoppedState:
+
+    def play_audio_file(self):
+        if self.mediaPlayer.state() == QMediaPlayer.PausedState or \
+                self.mediaPlayer.state() == QMediaPlayer.StoppedState:
             self.mediaPlayer.play()
             self.mediaPlayerWidget.play_btn.setIcon(self.mediaPlayerWidget.pause_icon)
-        elif self.mediaPlayer.state() == QMediaPlayer.PlayingState:
-            self.mediaPlayer.stop()
-            self.mediaPlayerWidget.play_btn.setIcon(self.mediaPlayerWidget.play_btn)
+
+    def pause_audio_file(self):
+        # if self.mediaPlayer.state() == QMediaPlayer.PlayingState:
+        self.mediaPlayer.pause()
+        self.mediaPlayerWidget.play_btn.setIcon(self.mediaPlayerWidget.play_icon)
+
+    def set_pause_icon(self, state):
+        print("Logging in")
+        if state == 7:
+            print("Logging in #2")
+            self.mediaPlayerWidget.play_btn.setIcon(self.mediaPlayerWidget.play_icon)
+
+    def reload_audio_file(self):
+        self.playing_now = self.playlistWidget.music_album[self.index]
+        self.load_audio_file(self.playing_now)
+        self.pause_audio_file()
+        self.musicTitle.setText(self.playing_now)
 
     def set_volume(self, gesture_id):
         current_volume = self.mediaPlayer.volume()
-        if gesture_id == 30:
-            self.mediaPlayer.setVolume(current_volume - 5)
-            self.set_volume_slider_value(current_volume - 5)
-        elif gesture_id == 31:
-            self.mediaPlayer.setVolume(current_volume + 5)
-            self.set_volume_slider_value(current_volume + 5)
+        if gesture_id == 33:
+            self.mediaPlayer.setVolume(current_volume - 10)
+            self.set_volume_slider_value(current_volume - 10)
+        elif gesture_id == 32:
+            self.mediaPlayer.setVolume(current_volume + 10)
+            self.set_volume_slider_value(current_volume + 10)
 
     def set_slider_duration(self, duration):
         self.mediaPlayerWidget.media_duration_slider.setRange(0, duration)
-        self.wave_file_length = duration
+        self.audio_file_length = duration
 
     def set_slider_position(self, position):
         self.mediaPlayerWidget.media_duration_slider.setValue(position)
@@ -179,9 +202,24 @@ class MusicPlayer(QMainWindow):
     def set_volume_slider_value(self, volume):
         self.mediaPlayerWidget.volume_slider.setValue(volume)
 
+    def gesture_handler(self, gesture_id):
+        if gesture_id == 3:
+            self.play_audio_file()
+        elif gesture_id == 0:
+            self.pause_audio_file()
+        elif gesture_id == 30:
+            self.index = (self.index - 1) % len(self.playlistWidget.music_album)
+            self.reload_audio_file()
+        elif gesture_id == 31:
+            self.index = (self.index + 1) % len(self.playlistWidget.music_album)
+            self.reload_audio_file()
+        else:
+            self.set_volume(gesture_id)
+
 
 if __name__ == "__main__":
+    my_music_album_path = './music_album/'
     app = QApplication(sys.argv)
-    media_player = MusicPlayer()
+    media_player = MusicPlayer(my_music_album_path)
     media_player.show()
     app.exec_()

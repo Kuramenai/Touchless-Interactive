@@ -45,7 +45,7 @@ class PiMediaCenter(QMainWindow):
             elif settings.current_window == 1:
                 self.homeScreen.image_viewer.gesture_handler(gesture_id)
             elif settings.current_window == 2:
-                pass
+                self.homeScreen.music_player.gesture_handler(gesture_id)
             elif settings.current_window == 3:
                 pass
 
@@ -80,12 +80,8 @@ class GestureRecognitionThread(QThread):
                     if len(most_common_fg_id) > 1:
                         gesture = self.gestureRecognition.index_finger_movement_labels[most_common_fg_id[0][0]]
                         gesture2 = self.gestureRecognition.index_finger_movement_labels[most_common_fg_id[1][0]]
-                        if most_common_fg_id[0][0] == 0:
-                            print("Signal Received. Moving to left...")
-                            self.gesture_detected.emit(30 + most_common_fg_id[0][0])
-                        elif most_common_fg_id[0][0] == 1:
-                            print("Signal Received. Moving to right...")
-                            self.gesture_detected.emit(30 + most_common_fg_id[0][0])
+                        self.gesture_detected.emit(30 + most_common_fg_id[0][0])
+
                 else:
                     self.gesture_detected.emit(gesture_detected_id)
 
