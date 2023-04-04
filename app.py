@@ -1,12 +1,14 @@
 import sys
 import cv2
 import settings
+from styles import music_player_stylesheet
 from collections import Counter
 from PyQt5.QtWidgets import QApplication, QMainWindow
 from PyQt5.QtCore import QSize, QThread, pyqtSignal
 from home_screen.launcher import HomeScreen
 from images_window.image_viewer import ImageViewer
 from video_processing.gesture_recognition import GestureRecognition
+
 
 
 class PiMediaCenter(QMainWindow):
@@ -109,6 +111,7 @@ if __name__ == "__main__":
 
     app = QApplication(sys.argv)
     settings.window_manager()
+    music_player_stylesheet.initialize_style()
     window = PiMediaCenter()
 
     app.exec_()

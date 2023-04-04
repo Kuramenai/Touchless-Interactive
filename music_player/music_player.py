@@ -4,10 +4,11 @@ from os.path import isfile, join
 from PyQt5.QtWidgets import QApplication, QWidget, QGridLayout, QHBoxLayout, QVBoxLayout, QPushButton, QStyle, QLabel, \
     QSlider, QMainWindow
 from PyQt5.QtCore import QSize, Qt, QUrl
-from PyQt5.QtGui import QPixmap
+from PyQt5.QtGui import QPixmap, QFont
 from PyQt5.QtMultimedia import QMediaPlayer, QMediaContent, QAudioInput
 from PyQt5.QtMultimediaWidgets import QVideoWidget
 
+from styles import music_player_stylesheet
 
 def is_music_file(filename):
     """Check if filename is an audio file"""
@@ -48,6 +49,8 @@ class MediaPlayerWidget(QWidget):
         # Slider
         self.media_duration_slider = QSlider()
         self.media_duration_slider.setOrientation(Qt.Horizontal)
+        self.media_duration_slider.setFixedSize(QSize(350, 15))
+        self.media_duration_slider.sizeIncrement()
 
         # Volume Button and Slider
         self.volume_btn = QPushButton()
@@ -61,9 +64,11 @@ class MediaPlayerWidget(QWidget):
         layout.addWidget(self.prev_btn, 0, 0, Qt.AlignCenter)
         layout.addWidget(self.play_btn, 0, 1, Qt.AlignCenter)
         layout.addWidget(self.next_btn, 0, 2, Qt.AlignCenter)
-        layout.addWidget(self.media_duration_slider, 1, 0, 1, 4, Qt.AlignCenter)
+        layout.addWidget(self.media_duration_slider, 1, 0, 1, 4, Qt.AlignLeft)
         layout.addWidget(self.volume_btn, 0, 3, Qt.AlignCenter)
         layout.addWidget(self.volume_slider, 0, 4, Qt.AlignCenter)
+
+        self.setStyleSheet(music_player_stylesheet.style)
 
         # self.setStyleSheet("QPushButton {border : 1px solid; border-radius: 15px; height : 30px; width : 30px}")
 
@@ -81,13 +86,20 @@ class MyPlaylistWidget(QWidget):
         self.first_audio_file_name = self.music_album[0] if self.music_album else None
 
     def __init_ui(self):
+
+        self.setStyleSheet("""  background-color: white; 
+                                border-radius : 5px;
+                                padding : 3px;
+                                """)
+
         layout = QVBoxLayout(self)
         layout.setContentsMargins(20, 0, 20, 475)
         layout.setSpacing(20)
         layout.insertStretch(-1, 1)
-
         playlist_title = QLabel(self)
         playlist_title.setText("My Playlist")
+        playlist_title.setStyleSheet(""" background-color : #3167D1; color : white; font-weight : bold""")
+        playlist_title.setFont(QFont("Goudy Old Style", 13))
         playlist_title.setAlignment(Qt.AlignCenter)
 
         layout.addWidget(playlist_title)
@@ -134,10 +146,11 @@ class MusicPlayer(QMainWindow):
 
         vboxLayout = QVBoxLayout()
         vboxLayout.setContentsMargins(30, 50, 30, 50)
-        vboxLayout.setSpacing(10)
+        vboxLayout.setSpacing(0)
 
         self.musicTitle.setText(self.playing_now)
 
+        # pixmap = QPixmap('music_icon.png')
         pixmap = QPixmap('./global_icons/music_icon.png')
         pixmap = pixmap.scaled(QSize(426, 327), Qt.KeepAspectRatio, Qt.SmoothTransformation)
         self.musicIcon.setPixmap(pixmap)
@@ -150,6 +163,8 @@ class MusicPlayer(QMainWindow):
 
         hboxLayout.addWidget(self.playlistWidget)
         hboxLayout.addLayout(vboxLayout)
+
+        self.setStyleSheet("""background-color: lightgreen;""")
 
         self.musicPlayerWidget.setLayout(hboxLayout)
         self.setCentralWidget(self.musicPlayerWidget)
@@ -172,9 +187,7 @@ class MusicPlayer(QMainWindow):
         self.mediaPlayerWidget.play_btn.setIcon(self.mediaPlayerWidget.play_icon)
 
     def set_pause_icon(self, state):
-        print("Logging in")
-        if state == 7:
-            print("Logging in #2")
+        if self.mediaPlayer.state() == QMediaPlayer.StoppedState:
             self.mediaPlayerWidget.play_btn.setIcon(self.mediaPlayerWidget.play_icon)
 
     def reload_audio_file(self):
@@ -218,6 +231,7 @@ class MusicPlayer(QMainWindow):
 
 
 if __name__ == "__main__":
+    music_player_stylesheet.initialize_style()
     my_music_album_path = './music_album/'
     app = QApplication(sys.argv)
     media_player = MusicPlayer(my_music_album_path)
