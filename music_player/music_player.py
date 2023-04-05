@@ -28,9 +28,32 @@ class MediaPlayerWidget(QWidget):
 
     def __init_ui(self):
 
+        self.setFixedWidth(500)
+
         layout = QGridLayout(self)
-        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setContentsMargins(0, 5, 0, 5)
         layout.setSpacing(0)
+
+        # Music Icon
+        self.musicIcon = QLabel()
+        # pixmap = QPixmap('music_icon.png')
+        pixmap = QPixmap('./global_icons/music_icon.png')
+        pixmap = pixmap.scaled(QSize(426, 327), Qt.KeepAspectRatio, Qt.SmoothTransformation)
+        self.musicIcon.setPixmap(pixmap)
+
+        # Animation when music is playing
+        # self.music_animation = QMovie('music-animation-unscreen.gif')
+        self.music_animation = QMovie('./global_icons/music-animation-unscreen.gif')
+        self.music_animation_label = QLabel()
+
+        # pixmap = QPixmap('music_animation_paused.png')
+        pixmap = QPixmap('./global_icons/music_animation_paused.png')
+        pixmap = pixmap.scaled(QSize(360, 150), Qt.KeepAspectRatio, Qt.SmoothTransformation)
+        self.music_animation_label.setPixmap(pixmap)
+        self.music_animation_label.setFixedSize(QSize(360, 150))
+
+        # Label for name of audio file
+        self.musicTitle = QLabel()
 
         # Prev, Play, Next Buttons
         self.play_btn = QPushButton()
@@ -46,39 +69,41 @@ class MediaPlayerWidget(QWidget):
         self.skip_backward_icon = self.style().standardIcon(QStyle.SP_MediaSkipBackward)
         self.prev_btn.setIcon(self.skip_backward_icon)
 
-        # Playing Time:
-        self.media_played_time = QLabel(self)
+        # Playing Time
+        self.media_played_time = QLabel()
         self.media_played_time.setText("00:00")
-        self.media_total_duration = QLabel(self)
+        self.media_total_duration = QLabel()
         self.media_total_duration.setText("00:00")
 
         # Slider
         self.media_duration_slider = QSlider()
         self.media_duration_slider.setOrientation(Qt.Horizontal)
         self.media_duration_slider.setFixedSize(QSize(350, 15))
-        self.media_duration_slider.sizeIncrement()
 
         # Volume Button and Slider
         self.volume_btn = QPushButton()
         self.volume_icon = self.style().standardIcon(QStyle.SP_MediaVolume)
         self.volume_btn.setIcon(self.volume_icon)
+        self.volume_btn.setStyleSheet("""background-color: none""")
 
         self.volume_slider = QSlider()
         self.volume_slider.setOrientation(Qt.Horizontal)
         self.volume_slider.setRange(0, 100)
 
-        layout.addWidget(self.prev_btn, 0, 1, Qt.AlignCenter)
-        layout.addWidget(self.play_btn, 0, 2, Qt.AlignCenter)
-        layout.addWidget(self.next_btn, 0, 3, Qt.AlignCenter)
-        layout.addWidget(self.volume_btn, 0, 4, Qt.AlignCenter)
-        layout.addWidget(self.volume_slider, 0, 5, Qt.AlignCenter)
-        layout.addWidget(self.media_played_time, 1, 0)
-        layout.addWidget(self.media_total_duration, 1, 4)
-        layout.addWidget(self.media_duration_slider, 1, 1, 1, 3, Qt.AlignCenter)
+        # Adding widgets to  layout
+        layout.addWidget(self.musicIcon, 0, 1, 6, 17, Qt.AlignCenter)
+        layout.addWidget(self.music_animation_label, 6, 1, 3, 17,  Qt.AlignCenter)
+        layout.addWidget(self.musicTitle, 10, 1, 1, 17,  Qt.AlignCenter)
+        layout.addWidget(self.prev_btn, 20, 5, 1, 1, Qt.AlignCenter)
+        layout.addWidget(self.play_btn, 20, 9, 1, 1, Qt.AlignCenter)
+        layout.addWidget(self.next_btn, 20, 13, 1, 1, Qt.AlignCenter)
+        layout.addWidget(self.volume_btn, 20, 15, 1, 1, Qt.AlignRight)
+        layout.addWidget(self.volume_slider, 20, 17, 1, 1, Qt.AlignRight)
+        layout.addWidget(self.media_played_time, 21, 2, 1, 1, Qt.AlignLeft)
+        layout.addWidget(self.media_total_duration, 21, 17, 1, 1, Qt.AlignLeft)
+        layout.addWidget(self.media_duration_slider, 21, 3, 1, 14, Qt.AlignCenter)
 
         self.setStyleSheet(music_player_stylesheet.style)
-
-        # self.setStyleSheet("QPushButton {border : 1px solid; border-radius: 15px; height : 30px; width : 30px}")
 
 
 class MyPlaylistWidget(QWidget):
@@ -100,12 +125,13 @@ class MyPlaylistWidget(QWidget):
                                 border-radius : 5px;
                                 padding : 3px;
                                 """)
+        self.setFixedWidth(425)
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(20, 0, 20, 475)
         layout.setSpacing(20)
         layout.insertStretch(-1, 1)
-        playlist_title = QLabel(self)
+        playlist_title = QLabel()
         playlist_title.setText("My Playlist")
         playlist_title.setStyleSheet(""" background-color : #3167D1; color : white; font-weight : bold""")
         playlist_title.setFont(QFont("Goudy Old Style", 13))
@@ -115,7 +141,7 @@ class MyPlaylistWidget(QWidget):
 
         for file in self.music_album:
             if is_music_file(file):
-                music_label = QLabel(self)
+                music_label = QLabel()
                 music_label.setText(file[:-4])
                 self.music_labels.append(music_label)
                 layout.addWidget(music_label)
@@ -132,11 +158,6 @@ class MusicPlayer(QMainWindow):
         self.music_album_path = music_album_path
 
         self.playlistWidget = MyPlaylistWidget(self.music_album_path)
-        self.musicIcon = QLabel(self)
-        self.musicTitle = QLabel(self)
-        # self.music_animation = QMovie('music-animation-unscreen.gif')
-        self.music_animation = QMovie('./global_icons/music-animation-unscreen.gif')
-        self.music_animation_label = QLabel(self)
         self.mediaPlayerWidget = MediaPlayerWidget()
         self.mediaPlayer = QMediaPlayer()
         self.musicPlayerWidget = QWidget()
@@ -152,13 +173,6 @@ class MusicPlayer(QMainWindow):
         # Highlighting playing now music label
         self.highlight_playing_now_label()
 
-        # Music Animation GIF
-        # pixmap = QPixmap('music_animation_paused.jpg')
-        pixmap = QPixmap('./global_icons/music_animation_paused.jpg')
-        pixmap = pixmap.scaled(QSize(360, 150), Qt.KeepAspectRatio, Qt.SmoothTransformation)
-        self.music_animation_label.setPixmap(pixmap)
-        self.music_animation_label.setFixedSize(QSize(360, 150))
-
         # State management of media player
         self.mediaPlayer.durationChanged.connect(self.set_slider_duration)
         self.mediaPlayer.positionChanged.connect(self.set_slider_position)
@@ -168,39 +182,26 @@ class MusicPlayer(QMainWindow):
         self.mediaPlayer.setVolume(50)
         self.mediaPlayerWidget.volume_slider.setValue(self.mediaPlayer.volume())
 
+        # Displaying name of audio which is being played
+        self.mediaPlayerWidget.musicTitle.setText(self.playing_now)
+        self.mediaPlayerWidget.musicTitle.setAlignment(Qt.AlignCenter)
+
         # Setting up layouts
-        vboxLayout = QVBoxLayout()
-        vboxLayout.setContentsMargins(30, 50, 30, 50)
-        vboxLayout.setSpacing(0)
-
-        self.musicTitle.setText(self.playing_now)
-
-        # pixmap = QPixmap('music_icon.png')
-        pixmap = QPixmap('./global_icons/music_icon.png')
-        pixmap = pixmap.scaled(QSize(426, 327), Qt.KeepAspectRatio, Qt.SmoothTransformation)
-        self.musicIcon.setPixmap(pixmap)
-
-        vboxLayout.addWidget(self.musicIcon)
-        vboxLayout.addWidget(self.music_animation_label, Qt.AlignHCenter)
-        vboxLayout.addWidget(self.musicTitle)
-        vboxLayout.addWidget(self.mediaPlayerWidget)
-
         hboxLayout = QHBoxLayout(self)
-
         hboxLayout.addWidget(self.playlistWidget)
-        hboxLayout.addLayout(vboxLayout)
+        hboxLayout.addWidget(self.mediaPlayerWidget)
 
-        self.setStyleSheet("""background-color: lightgreen;""")
+        self.setStyleSheet("""background-color: lightgray;""")
 
         self.musicPlayerWidget.setLayout(hboxLayout)
         self.setCentralWidget(self.musicPlayerWidget)
 
     def start_music_playing_animation(self):
-        self.music_animation_label.setMovie(self.music_animation)
-        self.music_animation.start()
+        self.mediaPlayerWidget.music_animation_label.setMovie(self.mediaPlayerWidget.music_animation)
+        self.mediaPlayerWidget.music_animation.start()
 
     def pause_music_playing_animation(self):
-        self.music_animation.setPaused(True)
+        self.mediaPlayerWidget.music_animation.setPaused(True)
 
     def load_audio_file(self, audio_file_name):
         full_file_path = self.music_album_path + audio_file_name
@@ -219,7 +220,7 @@ class MusicPlayer(QMainWindow):
         self.playing_now = self.playlistWidget.music_album[self.index]
         self.load_audio_file(self.playing_now)
         self.pause_audio_file()
-        self.musicTitle.setText(self.playing_now)
+        self.mediaPlayerWidget.musicTitle.setText(self.playing_now)
 
     def pause_audio_file(self):
         # if self.mediaPlayer.state() == QMediaPlayer.PlayingState:
@@ -228,8 +229,9 @@ class MusicPlayer(QMainWindow):
         self.pause_music_playing_animation()
 
     def set_pause_icon(self, state):
-        if self.mediaPlayer.state() == QMediaPlayer.EndOfMedia:
+        if self.mediaPlayer.state() == QMediaPlayer.StoppedState:
             self.mediaPlayerWidget.play_btn.setIcon(self.mediaPlayerWidget.play_icon)
+            self.mediaPlayerWidget.music_animation.stop()
 
 
     def set_volume(self, gesture_id):
@@ -263,7 +265,7 @@ class MusicPlayer(QMainWindow):
 
     def highlight_playing_now_label(self):
         label = self.playlistWidget.music_labels[self.index]
-        label.setStyleSheet(""" background-color : lightgray; border : 2px solid blue;""")
+        label.setStyleSheet(""" background-color : azure ; border : 2px solid blue;""")
 
     def gesture_handler(self, gesture_id):
         if gesture_id == 3:

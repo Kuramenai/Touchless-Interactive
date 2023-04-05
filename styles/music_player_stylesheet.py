@@ -24,6 +24,9 @@ def initialize_style():
         
         QPushButton{
             border : none;
+            border-radius : 5px;
+            padding : 2px;
+            background-color : white;
         }
     
     """
