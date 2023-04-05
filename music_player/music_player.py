@@ -4,7 +4,7 @@ from os.path import isfile, join
 from PyQt5.QtWidgets import QApplication, QWidget, QGridLayout, QHBoxLayout, QVBoxLayout, QPushButton, QStyle, QLabel, \
     QSlider, QMainWindow
 from PyQt5.QtCore import QSize, Qt, QUrl
-from PyQt5.QtGui import QPixmap, QFont
+from PyQt5.QtGui import QPixmap, QMovie, QFont
 from PyQt5.QtMultimedia import QMediaPlayer, QMediaContent, QAudioInput
 from PyQt5.QtMultimediaWidgets import QVideoWidget
 
@@ -84,6 +84,7 @@ class MyPlaylistWidget(QWidget):
         self.music_album = \
             [music for music in listdir(self.music_album_path) if isfile(join(self.music_album_path, music))]
         self.first_audio_file_name = self.music_album[0] if self.music_album else None
+        self.music_labels = []
 
     def __init_ui(self):
 
@@ -105,11 +106,10 @@ class MyPlaylistWidget(QWidget):
         layout.addWidget(playlist_title)
 
         for file in self.music_album:
-            music_labels = []
             if is_music_file(file):
                 music_label = QLabel(self)
                 music_label.setText(file[:-4])
-                music_labels.append(music_label)
+                self.music_labels.append(music_label)
                 layout.addWidget(music_label)
 
 
@@ -126,6 +126,9 @@ class MusicPlayer(QMainWindow):
         self.playlistWidget = MyPlaylistWidget(self.music_album_path)
         self.musicIcon = QLabel(self)
         self.musicTitle = QLabel(self)
+        # self.music_animation = QMovie('music-animation-unscreen.gif')
+        self.music_animation = QMovie('./global_icons/music-animation-unscreen.gif')
+        self.music_animation_label = QLabel(self)
         self.mediaPlayerWidget = MediaPlayerWidget()
         self.mediaPlayer = QMediaPlayer()
         self.musicPlayerWidget = QWidget()
@@ -138,12 +141,26 @@ class MusicPlayer(QMainWindow):
         self.setWindowTitle("Pi Media Center")
         self.setFixedSize(QSize(1080, 720))
 
+        # Highlighting playing now music label
+        self.highlight_playing_now_label()
+
+        # Music Animation GIF
+        # pixmap = QPixmap('music_animation_paused.jpg')
+        pixmap = QPixmap('./global_icons/music_animation_paused.jpg')
+        pixmap = pixmap.scaled(QSize(360, 150), Qt.KeepAspectRatio, Qt.SmoothTransformation)
+        self.music_animation_label.setPixmap(pixmap)
+        self.music_animation_label.setFixedSize(QSize(360, 150))
+
+        # State management of media player
         self.mediaPlayer.durationChanged.connect(self.set_slider_duration)
         self.mediaPlayer.positionChanged.connect(self.set_slider_position)
         self.mediaPlayer.stateChanged.connect(self.set_pause_icon)
 
+        # Volume Control
+        self.mediaPlayer.setVolume(50)
         self.mediaPlayerWidget.volume_slider.setValue(self.mediaPlayer.volume())
 
+        # Setting up layouts
         vboxLayout = QVBoxLayout()
         vboxLayout.setContentsMargins(30, 50, 30, 50)
         vboxLayout.setSpacing(0)
@@ -156,6 +173,7 @@ class MusicPlayer(QMainWindow):
         self.musicIcon.setPixmap(pixmap)
 
         vboxLayout.addWidget(self.musicIcon)
+        vboxLayout.addWidget(self.music_animation_label, Qt.AlignHCenter)
         vboxLayout.addWidget(self.musicTitle)
         vboxLayout.addWidget(self.mediaPlayerWidget)
 
@@ -169,6 +187,13 @@ class MusicPlayer(QMainWindow):
         self.musicPlayerWidget.setLayout(hboxLayout)
         self.setCentralWidget(self.musicPlayerWidget)
 
+    def start_music_playing_animation(self):
+        self.music_animation_label.setMovie(self.music_animation)
+        self.music_animation.start()
+
+    def pause_music_playing_animation(self):
+        self.music_animation.setPaused(True)
+
     def load_audio_file(self, audio_file_name):
         full_file_path = self.music_album_path + audio_file_name
         audio_url = QUrl.fromLocalFile(full_file_path)
@@ -180,21 +205,24 @@ class MusicPlayer(QMainWindow):
                 self.mediaPlayer.state() == QMediaPlayer.StoppedState:
             self.mediaPlayer.play()
             self.mediaPlayerWidget.play_btn.setIcon(self.mediaPlayerWidget.pause_icon)
-
-    def pause_audio_file(self):
-        # if self.mediaPlayer.state() == QMediaPlayer.PlayingState:
-        self.mediaPlayer.pause()
-        self.mediaPlayerWidget.play_btn.setIcon(self.mediaPlayerWidget.play_icon)
-
-    def set_pause_icon(self, state):
-        if self.mediaPlayer.state() == QMediaPlayer.StoppedState:
-            self.mediaPlayerWidget.play_btn.setIcon(self.mediaPlayerWidget.play_icon)
+            self.start_music_playing_animation()
 
     def reload_audio_file(self):
         self.playing_now = self.playlistWidget.music_album[self.index]
         self.load_audio_file(self.playing_now)
         self.pause_audio_file()
         self.musicTitle.setText(self.playing_now)
+
+    def pause_audio_file(self):
+        # if self.mediaPlayer.state() == QMediaPlayer.PlayingState:
+        self.mediaPlayer.pause()
+        self.mediaPlayerWidget.play_btn.setIcon(self.mediaPlayerWidget.play_icon)
+        self.pause_music_playing_animation()
+
+    def set_pause_icon(self, state):
+        if self.mediaPlayer.state() == QMediaPlayer.StoppedState:
+            self.mediaPlayerWidget.play_btn.setIcon(self.mediaPlayerWidget.play_icon)
+
 
     def set_volume(self, gesture_id):
         current_volume = self.mediaPlayer.volume()
@@ -215,17 +243,29 @@ class MusicPlayer(QMainWindow):
     def set_volume_slider_value(self, volume):
         self.mediaPlayerWidget.volume_slider.setValue(volume)
 
+    def remove_highlight(self):
+        label = self.playlistWidget.music_labels[self.index]
+        label.setStyleSheet(""" """)
+
+    def highlight_playing_now_label(self):
+        label = self.playlistWidget.music_labels[self.index]
+        label.setStyleSheet(""" background-color : lightgray; border : 2px solid blue;""")
+
     def gesture_handler(self, gesture_id):
         if gesture_id == 3:
             self.play_audio_file()
         elif gesture_id == 0:
             self.pause_audio_file()
         elif gesture_id == 30:
+            self.remove_highlight()
             self.index = (self.index - 1) % len(self.playlistWidget.music_album)
+            self.highlight_playing_now_label()
             self.reload_audio_file()
         elif gesture_id == 31:
+            self.remove_highlight()
             self.index = (self.index + 1) % len(self.playlistWidget.music_album)
             self.reload_audio_file()
+            self.highlight_playing_now_label()
         else:
             self.set_volume(gesture_id)
 

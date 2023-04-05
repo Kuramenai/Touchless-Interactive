@@ -83,6 +83,7 @@ class GestureRecognitionThread(QThread):
                         gesture = self.gestureRecognition.index_finger_movement_labels[most_common_fg_id[0][0]]
                         gesture2 = self.gestureRecognition.index_finger_movement_labels[most_common_fg_id[1][0]]
                         self.gesture_detected.emit(30 + most_common_fg_id[0][0])
+                    most_common_fg_id = []
 
                 else:
                     self.gesture_detected.emit(gesture_detected_id)
