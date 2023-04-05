@@ -46,6 +46,12 @@ class MediaPlayerWidget(QWidget):
         self.skip_backward_icon = self.style().standardIcon(QStyle.SP_MediaSkipBackward)
         self.prev_btn.setIcon(self.skip_backward_icon)
 
+        # Playing Time:
+        self.media_played_time = QLabel(self)
+        self.media_played_time.setText("00:00")
+        self.media_total_duration = QLabel(self)
+        self.media_total_duration.setText("00:00")
+
         # Slider
         self.media_duration_slider = QSlider()
         self.media_duration_slider.setOrientation(Qt.Horizontal)
@@ -61,12 +67,14 @@ class MediaPlayerWidget(QWidget):
         self.volume_slider.setOrientation(Qt.Horizontal)
         self.volume_slider.setRange(0, 100)
 
-        layout.addWidget(self.prev_btn, 0, 0, Qt.AlignCenter)
-        layout.addWidget(self.play_btn, 0, 1, Qt.AlignCenter)
-        layout.addWidget(self.next_btn, 0, 2, Qt.AlignCenter)
-        layout.addWidget(self.media_duration_slider, 1, 0, 1, 4, Qt.AlignLeft)
-        layout.addWidget(self.volume_btn, 0, 3, Qt.AlignCenter)
-        layout.addWidget(self.volume_slider, 0, 4, Qt.AlignCenter)
+        layout.addWidget(self.prev_btn, 0, 1, Qt.AlignCenter)
+        layout.addWidget(self.play_btn, 0, 2, Qt.AlignCenter)
+        layout.addWidget(self.next_btn, 0, 3, Qt.AlignCenter)
+        layout.addWidget(self.volume_btn, 0, 4, Qt.AlignCenter)
+        layout.addWidget(self.volume_slider, 0, 5, Qt.AlignCenter)
+        layout.addWidget(self.media_played_time, 1, 0)
+        layout.addWidget(self.media_total_duration, 1, 4)
+        layout.addWidget(self.media_duration_slider, 1, 1, 1, 3, Qt.AlignCenter)
 
         self.setStyleSheet(music_player_stylesheet.style)
 
@@ -220,7 +228,7 @@ class MusicPlayer(QMainWindow):
         self.pause_music_playing_animation()
 
     def set_pause_icon(self, state):
-        if self.mediaPlayer.state() == QMediaPlayer.StoppedState:
+        if self.mediaPlayer.state() == QMediaPlayer.EndOfMedia:
             self.mediaPlayerWidget.play_btn.setIcon(self.mediaPlayerWidget.play_icon)
 
 
@@ -236,9 +244,15 @@ class MusicPlayer(QMainWindow):
     def set_slider_duration(self, duration):
         self.mediaPlayerWidget.media_duration_slider.setRange(0, duration)
         self.audio_file_length = duration
+        duration_minutes = duration // 60_000
+        duration_seconds = ((duration % 60_000) // 1000)
+        self.mediaPlayerWidget.media_total_duration.setText(f"{duration_minutes:02}:{duration_seconds:02}")
 
     def set_slider_position(self, position):
         self.mediaPlayerWidget.media_duration_slider.setValue(position)
+        duration_minutes = position // 60_000
+        duration_seconds = ((position % 60_000) // 1000)
+        self.mediaPlayerWidget.media_played_time.setText(f"{duration_minutes:02}:{duration_seconds:02}")
 
     def set_volume_slider_value(self, volume):
         self.mediaPlayerWidget.volume_slider.setValue(volume)
