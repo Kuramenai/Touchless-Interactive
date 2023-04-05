@@ -78,12 +78,12 @@ class GestureRecognitionThread(QThread):
                 gesture2 = ''
                 gesture_detected_id = self.gestureRecognition.detected_gesture_id
                 if gesture_detected_id == 2 and self.gestureRecognition.index_finger_movement_stopped:
-                    most_common_fg_id = Counter(self.gestureRecognition.finger_gesture_history).most_common()
-                    if len(most_common_fg_id) > 1:
-                        gesture = self.gestureRecognition.index_finger_movement_labels[most_common_fg_id[0][0]]
-                        gesture2 = self.gestureRecognition.index_finger_movement_labels[most_common_fg_id[1][0]]
-                        self.gesture_detected.emit(30 + most_common_fg_id[0][0])
-                    most_common_fg_id = []
+                    self.most_common_fg_id = Counter(self.gestureRecognition.finger_gesture_history).most_common()
+                    if len(self.most_common_fg_id) > 1:
+                        gesture = self.gestureRecognition.index_finger_movement_labels[self.most_common_fg_id[0][0]]
+                        gesture2 = self.gestureRecognition.index_finger_movement_labels[self.most_common_fg_id[1][0]]
+                        self.gesture_detected.emit(30 + self.most_common_fg_id[0][0])
+                        self.most_common_fg_id = []
 
                 else:
                     self.gesture_detected.emit(gesture_detected_id)
