@@ -132,7 +132,7 @@ class MyPlaylistWidget(QWidget):
         layout.setSpacing(20)
         layout.insertStretch(-1, 1)
         playlist_title = QLabel()
-        playlist_title.setText("My Playlist")
+        playlist_title.setText("My Music Playlist")
         playlist_title.setStyleSheet(""" background-color : #3167D1; color : white; font-weight : bold""")
         playlist_title.setFont(QFont("Goudy Old Style", 13))
         playlist_title.setAlignment(Qt.AlignCenter)
@@ -223,7 +223,6 @@ class MusicPlayer(QMainWindow):
         self.mediaPlayerWidget.musicTitle.setText(self.playing_now)
 
     def pause_audio_file(self):
-        # if self.mediaPlayer.state() == QMediaPlayer.PlayingState:
         self.mediaPlayer.pause()
         self.mediaPlayerWidget.play_btn.setIcon(self.mediaPlayerWidget.play_icon)
         self.pause_music_playing_animation()

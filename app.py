@@ -10,15 +10,14 @@ from images_window.image_viewer import ImageViewer
 from video_processing.gesture_recognition import GestureRecognition
 
 
-
 class PiMediaCenter(QMainWindow):
     def __init__(self):
         super().__init__()
         self.flickering_flag = 0
         self.current_window = 0
-        self.__initUI()
+        self.__init_ui()
 
-    def __initUI(self):
+    def __init_ui(self):
         self.setWindowTitle("Pi Media Center")
         self.setFixedSize(QSize(1080, 720))
 
@@ -49,7 +48,7 @@ class PiMediaCenter(QMainWindow):
             elif settings.current_window == 2:
                 self.homeScreen.music_player.gesture_handler(gesture_id)
             elif settings.current_window == 3:
-                pass
+                self.homeScreen.video_player.gesture_handler(gesture_id)
 
         # Restrict the number of times we can handle an emitted signal
         # Prevent Flickering

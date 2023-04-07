@@ -190,8 +190,6 @@ class GestureRecognition:
                 break
 
             self.select_mode()
-            # print(self.mode)
-            # print(self.key)
             if self.mode == 1:
                 self.save_landmarks()
 

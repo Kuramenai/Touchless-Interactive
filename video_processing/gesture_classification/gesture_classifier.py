@@ -1,10 +1,7 @@
 import numpy as np
 import tensorflow as tf
 
-path = 'C:/Users/marce/Documents/PycharmProjects/Touchless/video_processing' \
-       '/gesture_classification/trained_models/gesture_classifier/keypoint_classifier.tflite'
-
-alternate_path = 'trained_models/gesture_classifier/keypoint_classifier.tflite'
+path = 'video_processing/gesture_classification/trained_models/gesture_classifier/keypoint_classifier.tflite'
 
 
 class GestureClassifier(object):

@@ -3,13 +3,10 @@
 import numpy as np
 import tensorflow as tf
 
-path = 'C:/Users/marce/Documents/PycharmProjects/Touchless/video_processing' \
-       '/gesture_classification/trained_models/index_finger_movement_classifier/point_history_classifier.tflite'
 
-alternate_path = 'trained_models/index_finger_movement_classifier/point_history_classifier.tflite'
+path = 'video_processing/gesture_classification/trained_models/index_finger_movement_classifier' \
+       '/point_history_classifier_left_right_stop.tflite'
 
-original_model_path = 'C:/Users/marce/Documents/PycharmProjects/hand-gesture-recognition-mediapipe/model' \
-                      '/point_history_classifier/point_history_classifier.tflite'
 
 class PointHistoryClassifier(object):
     def __init__(
