@@ -94,16 +94,20 @@ class GestureRecognitionThread(QThread):
                 # Display the detected gesture
                 cv2.putText(frame, gesture, (10, 110), cv2.FONT_HERSHEY_PLAIN, 3, (255, 0, 255), 3)
                 cv2.putText(frame, gesture2, (10, 150), cv2.FONT_HERSHEY_PLAIN, 3, (255, 0, 255), 3)
-                cv2.imshow("Frame", frame)
+                # cv2.imshow("Frame", frame)
+               
             else:
                 print("No frame detected")
 
-            key = cv2.waitKey(1)
-            if key == ord('q'):
-                self.gestureRecognition.videoStream.stop()
-                self.thread_active = False
-                break
+            # print("Logging in waitKey")
+            # key = cv2.waitKey(1)
+            # print("Logging out waitKey")
 
+            # if key == ord('q'):
+            #     self.gestureRecognition.videoStream.stop()
+            #     self.thread_active = False
+            #     break
+                
         self.gestureRecognition.videoStream.stop()
         cv2.destroyAllWindows()
 

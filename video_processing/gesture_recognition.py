@@ -6,10 +6,7 @@ import numpy as np
 import itertools
 from collections import deque
 from collections import Counter
-from video_processing.video_stream import VideoStream
-from video_processing.hand_tracking_module import HandDetector
-from video_processing.gesture_classification.gesture_classifier import GestureClassifier
-from video_processing.gesture_classification.index_finger_movement_classifier import PointHistoryClassifier
+
 
 gesture_labels_path = "video_processing" \
              "/gesture_classification/labels/gestures_labels.csv"
@@ -175,6 +172,8 @@ class GestureRecognition:
             if self.key == ord('q'):
                 self.videoStream.stop()
                 break
+            
+            cv2.imshow("Frame", frame)
 
         cv2.destroyAllWindows()
 
@@ -197,6 +196,17 @@ class GestureRecognition:
 
 
 if __name__ == "__main__":
+    from video_stream import VideoStream
+    from hand_tracking_module import HandDetector
+    from gesture_classification.gesture_classifier import GestureClassifier
+    from gesture_classification.index_finger_movement_classifier import PointHistoryClassifier
+
     camera_index = 0
     gestureRecognition = GestureRecognition(camera_index)
     gestureRecognition.detect()
+
+else:
+    from video_processing.video_stream import VideoStream
+    from video_processing.hand_tracking_module import HandDetector
+    from video_processing.gesture_classification.gesture_classifier import GestureClassifier
+    from video_processing.gesture_classification.index_finger_movement_classifier import PointHistoryClassifier

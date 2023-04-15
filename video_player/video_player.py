@@ -3,7 +3,7 @@ from os import listdir
 from os.path import isfile, join
 from PyQt5.QtWidgets import QApplication, QWidget, QGridLayout, QHBoxLayout, QVBoxLayout, QPushButton, QStyle, QLabel, \
     QSlider, QMainWindow
-from PyQt5.QtCore import QSize, Qt, QUrl
+from PyQt5.QtCore import QSize, Qt, QUrl, QFileInfo
 from PyQt5.QtGui import QPixmap, QMovie, QFont
 from PyQt5.QtMultimedia import QMediaPlayer, QMediaContent, QAudioInput
 from PyQt5.QtMultimediaWidgets import QVideoWidget
@@ -185,7 +185,7 @@ class VideoPlayer(QMainWindow):
 
     def load_video_file(self, audio_file_name):
         full_file_path = self.video_album_path + audio_file_name
-        video_url = QUrl.fromLocalFile(full_file_path)
+        video_url =QUrl.fromLocalFile(QFileInfo(full_file_path).absoluteFilePath())
         content = QMediaContent(video_url)
         self.mediaPlayer.setMedia(content)
 

@@ -11,7 +11,7 @@ class VideoStream:
         self.__stop = False
         self.stream_started = False
 
-        self.__stream = cv2.VideoCapture(camera_index)
+        self.__stream = cv2.VideoCapture(camera_index, cv2.CAP_GSTREAMER)
         self.__stream_success = self.__is_stream_success()
         self.__has_received_frame(self.__stream_success)
 
