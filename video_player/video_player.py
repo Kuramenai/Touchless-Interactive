@@ -1,4 +1,5 @@
 import sys
+import settings
 from os import listdir
 from os.path import isfile, join
 from PyQt5.QtWidgets import QApplication, QWidget, QGridLayout, QHBoxLayout, QVBoxLayout, QPushButton, QStyle, QLabel, \
@@ -257,6 +258,9 @@ class VideoPlayer(QMainWindow):
             self.index = (self.index + 1) % len(self.playlistWidget.video_album)
             self.reload_audio_file()
             self.highlight_playing_now_label()
+        elif gesture_id == 1:  # Close Window
+            settings.current_window = 0
+            self.close()
         else:
             self.set_volume(gesture_id)
 
