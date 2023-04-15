@@ -58,12 +58,13 @@ class PiMediaCenter(QMainWindow):
 
 
 class GestureRecognitionThread(QThread):
+    camera_index = 0
     open_app = pyqtSignal(bool)
     gesture_detected = pyqtSignal(int)
 
     def run(self):
         self.thread_active = True
-        self.gestureRecognition = GestureRecognition()
+        self.gestureRecognition = GestureRecognition(self.camera_index)
         self.gestureRecognition.videoStream.start()
         self.open_app.emit(self.gestureRecognition.videoStream.stream_started)
 

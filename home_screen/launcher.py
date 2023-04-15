@@ -10,9 +10,9 @@ from images_window.image_viewer import ImageViewer
 from music_player.music_player import MusicPlayer
 from video_player.video_player import VideoPlayer
 
-album_path = './images_window/images/'
-audio_album_path = './music_player/music_album/'
-video_album_path = './video_player/videos/'
+album_path = 'images_window/images/'
+audio_album_path = 'music_player/music_album/'
+video_album_path = 'video_player/videos/'
 
 
 class HomeScreen(QMainWindow):

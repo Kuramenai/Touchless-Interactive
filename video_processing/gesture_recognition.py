@@ -11,12 +11,12 @@ from video_processing.hand_tracking_module import HandDetector
 from video_processing.gesture_classification.gesture_classifier import GestureClassifier
 from video_processing.gesture_classification.index_finger_movement_classifier import PointHistoryClassifier
 
-gesture_labels_path = "C:/Users/marce/Documents/PycharmProjects/Touchless/video_processing" \
+gesture_labels_path = "video_processing" \
              "/gesture_classification/labels/gestures_labels.csv"
 
 alternate_gestures_labels_path = 'labels/gestures_labels.csv'
 
-index_finger_movement_labels_path = "C:/Users/marce/Documents/PycharmProjects/Touchless/video_processing" \
+index_finger_movement_labels_path = "video_processing" \
              "/gesture_classification/labels/point_history_classifier_labels.csv"
 
 alternate_index_finger_movement_labels_path = 'labels/point_history_classifier_labels.csv'
@@ -26,7 +26,7 @@ ori_index_finger_movement_labels_path  = 'C:/Users/marce/Documents/PycharmProjec
 
 
 class GestureRecognition:
-    def __init__(self):
+    def __init__(self, camera_index):
         self.__previous_time, self.__current_time = 0, 0
         self.__fps = 0
         self.mode = 0
@@ -46,7 +46,7 @@ class GestureRecognition:
         self.point_history = deque(maxlen=self.history_length)
         self.finger_gesture_history = deque(maxlen=self.history_length)
 
-        self.videoStream = VideoStream(0)
+        self.videoStream = VideoStream(camera_index)
         self.__detector = HandDetector()
         self.__gestureClassifier = GestureClassifier()
         self.__indexMovementClassifier = PointHistoryClassifier()
@@ -197,5 +197,6 @@ class GestureRecognition:
 
 
 if __name__ == "__main__":
-    gestureRecognition = GestureRecognition()
+    camera_index = 0
+    gestureRecognition = GestureRecognition(camera_index)
     gestureRecognition.detect()
