@@ -11,24 +11,13 @@ from video_processing.hand_tracking_module import HandDetector
 from video_processing.gesture_classification.gesture_classifier import GestureClassifier
 from video_processing.gesture_classification.index_finger_movement_classifier import PointHistoryClassifier
 
-gesture_labels_path = "C:/Users/marce/Documents/PycharmProjects/Touchless/video_processing" \
-             "/gesture_classification/labels/gestures_labels.csv"
-
-alternate_gestures_labels_path = 'labels/gestures_labels.csv'
-
-index_finger_movement_labels_path = "C:/Users/marce/Documents/PycharmProjects/Touchless/video_processing" \
-             "/gesture_classification/labels/point_history_classifier_labels.csv"
-
-alternate_index_finger_movement_labels_path = 'labels/point_history_classifier_labels.csv'
-
-ori_index_finger_movement_labels_path  = 'C:/Users/marce/Documents/PycharmProjects/hand-gesture-recognition-mediapipe/model' \
-                      '/point_history_classifier/point_history_classifier_label.csv'
+gesture_labels_path = "video_processing/gesture_classification/labels/gestures_labels.csv"
+index_finger_movement_labels_path = "video_processing/gesture_classification/labels/point_history_classifier_labels.csv"
 
 
 class GestureRecognition:
     def __init__(self):
         self.__previous_time, self.__current_time = 0, 0
-        self.__fps = 0
         self.mode = 0
         self.key = 0
         self.gesture_id = -1
@@ -61,26 +50,26 @@ class GestureRecognition:
 
     def frame_processing(self, frame):
 
-        if frame is not None:
-            h, w, _ = frame.shape
-            frame = self.__detector.find_hands(frame, draw=True)
-            landmarks = self.__detector.find_landmarks(frame, draw=False)
+        h, w, _ = frame.shape
+        frame = self.__detector.find_hands(frame, draw=True)
+        landmarks = self.__detector.find_landmarks(frame, draw=False)
 
-            if len(landmarks) != 0:
-                self.processed_landmarks = self.get_processed_landmarks(landmarks)
-                self.processed_points_history = self.get_processed_points_history(frame, self.point_history)
+        if len(landmarks) != 0:
+            self.processed_landmarks = self.get_processed_landmarks(landmarks)
+            self.processed_points_history = self.get_processed_points_history(frame, self.point_history)
 
-                self.detected_gesture_id = self.__gestureClassifier(self.processed_landmarks)
+            self.detected_gesture_id = self.__gestureClassifier(self.processed_landmarks)
 
-                if self.detected_gesture_id == 2:  # Pointer Mode:
-                    self.point_history.append(landmarks[8])
-                else:
-                    self.point_history.append([0, 0])
+            # Pointer Mode:
+            if self.detected_gesture_id == 2:
+                self.point_history.append(landmarks[8])
+            # else:
+            #     self.point_history.append([0, 0])
 
+                # Index finger movement detection
                 if len(self.processed_points_history) == self.history_length * 2:
                     self.index_finger_movement_id = self.__indexMovementClassifier(self.processed_points_history)
                     self.finger_gesture_history.append(self.index_finger_movement_id)
-                    # if self.index_finger_movement_id == 4:
                     self.index_finger_movement_stopped = True
 
     def get_fps(self):

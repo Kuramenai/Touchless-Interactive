@@ -6,7 +6,6 @@ from collections import Counter
 from PyQt5.QtWidgets import QApplication, QMainWindow
 from PyQt5.QtCore import QSize, QThread, pyqtSignal
 from home_screen.launcher import HomeScreen
-from images_window.image_viewer import ImageViewer
 from video_processing.gesture_recognition import GestureRecognition
 
 
