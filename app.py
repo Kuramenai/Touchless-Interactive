@@ -6,7 +6,6 @@ from collections import Counter
 from PyQt5.QtWidgets import QApplication, QMainWindow
 from PyQt5.QtCore import QSize, QThread, pyqtSignal
 from home_screen.launcher import HomeScreen
-from images_window.image_viewer import ImageViewer
 from video_processing.gesture_recognition import GestureRecognition
 
 
@@ -96,7 +95,7 @@ class GestureRecognitionThread(QThread):
                 cv2.putText(frame, gesture, (10, 110), cv2.FONT_HERSHEY_PLAIN, 3, (255, 0, 255), 3)
                 cv2.putText(frame, gesture2, (10, 150), cv2.FONT_HERSHEY_PLAIN, 3, (255, 0, 255), 3)
                 cv2.imshow("Frame", frame) 
-                                  
+
                 key = cv2.waitKey(1)
                 if key == ord('q'):
                     self.gestureRecognition.videoStream.stop()

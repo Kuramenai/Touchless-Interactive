@@ -21,30 +21,20 @@ class HandDetector:
 
         #
 
-    def find_hands(self, frame, draw=True):
+    def find_hands(self, frame):
 
         frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         self.results = self.hands.process(frame_rgb)
 
-        if self.results.multi_hand_landmarks:
-            for handLms in self.results.multi_hand_landmarks:
-                if draw:
-                    self.mpDraw.draw_landmarks(frame, handLms, self.mpHands.HAND_CONNECTIONS)
-
-        return frame
-
-    def find_landmarks(self, frame, num_hands=0, draw=True):
+    def find_landmarks(self, frame, num_hands=0):
 
         landmarks = []
 
         if self.results.multi_hand_landmarks:
             my_hand = self.results.multi_hand_landmarks[num_hands]
-            for id, lm in enumerate(my_hand.landmark):
-                h, w, c = frame.shape
+            for lm in my_hand.landmark:
+                h, w, _ = frame.shape
                 cx, cy = int(lm.x * w), int(lm.y * h)
                 landmarks.append([cx, cy])
-                # print(id, cx, cy)
-                if draw:
-                    cv2.circle(frame, (cx, cy), 10, (255, 0, 255), cv2.FILLED)
 
         return landmarks
