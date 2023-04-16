@@ -91,23 +91,21 @@ class GestureRecognitionThread(QThread):
                 # Calculate and display the fps value on the screen
                 fps = self.gestureRecognition.get_fps()
                 cv2.putText(frame, str(int(fps)), (10, 70), cv2.FONT_HERSHEY_PLAIN, 3, (255, 0, 255), 3)
-                # Display the detected gesture
+
+                # Display frame
                 cv2.putText(frame, gesture, (10, 110), cv2.FONT_HERSHEY_PLAIN, 3, (255, 0, 255), 3)
                 cv2.putText(frame, gesture2, (10, 150), cv2.FONT_HERSHEY_PLAIN, 3, (255, 0, 255), 3)
-                # cv2.imshow("Frame", frame)
-               
+                cv2.imshow("Frame", frame) 
+                                  
+                key = cv2.waitKey(1)
+                if key == ord('q'):
+                    self.gestureRecognition.videoStream.stop()
+                    self.thread_active = False
+                    break
+                
             else:
                 print("No frame detected")
 
-            # print("Logging in waitKey")
-            # key = cv2.waitKey(1)
-            # print("Logging out waitKey")
-
-            # if key == ord('q'):
-            #     self.gestureRecognition.videoStream.stop()
-            #     self.thread_active = False
-            #     break
-                
         self.gestureRecognition.videoStream.stop()
         cv2.destroyAllWindows()
 
