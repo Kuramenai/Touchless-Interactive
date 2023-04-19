@@ -33,7 +33,7 @@ class GestureRecognition:
 
         self.history_length = 16
         self.point_history = deque(maxlen=self.history_length)
-        self.finger_gesture_history = deque(maxlen=self.history_length)
+        self.pointer_movement_history = deque(maxlen=self.history_length)
 
         self.videoStream = VideoStream(0)
         self.__detector = HandDetector()
@@ -53,24 +53,24 @@ class GestureRecognition:
         h, w, _ = frame.shape
         frame = self.__detector.find_hands(frame, draw=True)
         landmarks = self.__detector.find_landmarks(frame, draw=False)
+        detected_gesture_id = -1
 
         if len(landmarks) != 0:
             self.processed_landmarks = self.get_processed_landmarks(landmarks)
-            self.processed_points_history = self.get_processed_points_history(frame, self.point_history)
-
-            self.detected_gesture_id = self.__gestureClassifier(self.processed_landmarks)
-
+            detected_gesture_id = self.__gestureClassifier(self.processed_landmarks)
             # Pointer Mode:
-            if self.detected_gesture_id == 2:
+            if detected_gesture_id == 2:
                 self.point_history.append(landmarks[8])
-            # else:
-            #     self.point_history.append([0, 0])
-
+                self.processed_points_history = self.get_processed_points_history(frame, self.point_history, w, h)
                 # Index finger movement detection
                 if len(self.processed_points_history) == self.history_length * 2:
-                    self.index_finger_movement_id = self.__indexMovementClassifier(self.processed_points_history)
-                    self.finger_gesture_history.append(self.index_finger_movement_id)
-                    self.index_finger_movement_stopped = True
+                    pointer_movement_id = self.__indexMovementClassifier(self.processed_points_history)
+                    # self.pointer_movement_history.append(pointer_movement_id)
+                    # if pointer_movement_id == 2:
+                    #     pointer_movement_id = Counter(self.pointer_movement_history).most_common()
+                    detected_gesture_id = 30 + pointer_movement_id
+
+        return detected_gesture_id
 
     def get_fps(self):
         """Calculate the frame rate of the pipeline"""
@@ -106,40 +106,30 @@ class GestureRecognition:
     def get_processed_landmarks(self, landmarks: list):
         """Calculate the positions of the landmarks relative to the wrist"""
         # Copy the landmarks list to prevent unwanted changes
-        landmarks_copy = copy.deepcopy(landmarks)
+        processed_landmarks = np.copy(landmarks)
+
         # calculate the other landmark point positions relative to the position of the wrist
         wrist_xpos, wrist_ypos = landmarks[0][0], landmarks[0][1]
-        for index, landmark_point in enumerate(landmarks_copy):
-            landmarks_copy[index][0] -= wrist_xpos
-            landmarks_copy[index][1] -= wrist_ypos
-        landmarks_copy = list(itertools.chain.from_iterable(landmarks_copy))
-        # Find the greatest landmark point
-        max_value = max(list(map(abs, landmarks_copy)))
+        processed_landmarks[:, 0], processed_landmarks[:, 1] = processed_landmarks[:, 0] - wrist_xpos,\
+                                                                processed_landmarks[:, 1] - wrist_ypos
+        # Flatten the array and convert it to a python list
+        processed_landmarks = processed_landmarks.ravel()
         # Normalization
-        landmarks_copy = np.copy(landmarks_copy)
-        landmarks_copy = landmarks_copy/max_value
+        max_value = max(list(map(abs, processed_landmarks)))
+        processed_keypoint_landmarks = processed_landmarks / max_value
 
-        return landmarks_copy
+        return processed_keypoint_landmarks
 
-    def get_processed_points_history(self, image, point_history):
-        image_width, image_height = image.shape[1], image.shape[0]
+    def get_processed_points_history(self, image, point_history, image_width: int, image_height: int):
 
-        temp_point_history = copy.deepcopy(point_history)
-
+        temp_point_history = np.array(point_history, dtype=float)
         # Convert to relative coordinates
-        base_x, base_y = 0, 0
-        for index, point in enumerate(temp_point_history):
-            if index == 0:
-                base_x, base_y = point[0], point[1]
-
-            temp_point_history[index][0] = (temp_point_history[index][0] -
-                                            base_x) / image_width
-            temp_point_history[index][1] = (temp_point_history[index][1] -
-                                            base_y) / image_height
+        wrist_xpos, wrist_ypos = temp_point_history[0][0], temp_point_history[0][1]
+        temp_point_history[:, 0], temp_point_history[:, 1] = (temp_point_history[:, 0] - wrist_xpos) / image_width, \
+                                                            (temp_point_history[:, 1] - wrist_ypos) / image_height
 
         # Convert to a one-dimensional list
-        temp_point_history = list(
-            itertools.chain.from_iterable(temp_point_history))
+        temp_point_history = temp_point_history.ravel()
 
         return temp_point_history
 

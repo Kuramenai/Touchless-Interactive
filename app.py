@@ -2,7 +2,6 @@ import sys
 import cv2
 import settings
 from styles import music_player_stylesheet
-from collections import Counter
 from PyQt5.QtWidgets import QApplication, QMainWindow
 from PyQt5.QtCore import QSize, QThread, pyqtSignal
 from home_screen.launcher import HomeScreen
@@ -70,37 +69,29 @@ class GestureRecognitionThread(QThread):
             frame = self.gestureRecognition.videoStream.read()
             if frame is not None:
                 frame = cv2.flip(frame, 1)
-                self.gestureRecognition.frame_processing(frame)
+                detected_gesture_id = self.gestureRecognition.frame_processing(frame)
+                detected_gesture_label = ''
 
-                gesture = ''
-                gesture2 = ''
-                gesture_detected_id = self.gestureRecognition.detected_gesture_id
-                if gesture_detected_id == 2 and self.gestureRecognition.index_finger_movement_stopped:
-                    self.most_common_fg_id = Counter(self.gestureRecognition.finger_gesture_history).most_common()
-                    if len(self.most_common_fg_id) > 1:
-                        gesture = self.gestureRecognition.index_finger_movement_labels[self.most_common_fg_id[0][0]]
-                        gesture2 = self.gestureRecognition.index_finger_movement_labels[self.most_common_fg_id[1][0]]
-                        self.gesture_detected.emit(30 + self.most_common_fg_id[0][0])
-                        self.most_common_fg_id = []
+                if detected_gesture_id >= 30:
+                    detected_gesture_label = self.gestureRecognition.index_finger_movement_labels[detected_gesture_id - 30]
 
-                else:
-                    self.gesture_detected.emit(gesture_detected_id)
+                self.gesture_detected.emit(detected_gesture_id)
 
                 # Calculate and display the fps value on the screen
                 fps = self.gestureRecognition.get_fps()
                 cv2.putText(frame, str(int(fps)), (10, 70), cv2.FONT_HERSHEY_PLAIN, 3, (255, 0, 255), 3)
                 # Display the detected gesture
-                cv2.putText(frame, gesture, (10, 110), cv2.FONT_HERSHEY_PLAIN, 3, (255, 0, 255), 3)
-                cv2.putText(frame, gesture2, (10, 150), cv2.FONT_HERSHEY_PLAIN, 3, (255, 0, 255), 3)
+                cv2.putText(frame, detected_gesture_label, (10, 110), cv2.FONT_HERSHEY_PLAIN, 3, (255, 0, 255), 3)
                 cv2.imshow("Frame", frame)
+
+                key = cv2.waitKey(1)
+                if key == ord('q'):
+                    self.gestureRecognition.videoStream.stop()
+                    self.thread_active = False
+                    break
+
             else:
                 print("No frame detected")
-
-            key = cv2.waitKey(1)
-            if key == ord('q'):
-                self.gestureRecognition.videoStream.stop()
-                self.thread_active = False
-                break
 
         self.gestureRecognition.videoStream.stop()
         cv2.destroyAllWindows()
