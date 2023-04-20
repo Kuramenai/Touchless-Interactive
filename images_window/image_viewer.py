@@ -131,9 +131,9 @@ class ImageViewer(QMainWindow):
             self.index = (self.index + 1) % len(self.thumbnails.album)
             self.viewer.load_image(self.album_path + self.thumbnails.album[self.index])
             self.highlight_thumbnail_selection()
-        # elif gesture_id == 1:  # Close Window
-        #     settings.current_window = 0
-        #     self.close()
+        elif gesture_id == 1:  # Close Window
+            settings.current_window = 0
+            self.close()
 
 
 if __name__ == "__main__":
