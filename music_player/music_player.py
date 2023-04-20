@@ -285,7 +285,7 @@ class MusicPlayer(QMainWindow):
         elif gesture_id == 1:  # Close Window
             settings.current_window = 0
             self.close()
-        else:
+        elif gesture_id == 33 or gesture_id == 34:
             self.set_volume(gesture_id)
 
 
