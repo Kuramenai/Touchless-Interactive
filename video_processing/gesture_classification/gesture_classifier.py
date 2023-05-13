@@ -1,7 +1,7 @@
 import numpy as np
 import tensorflow as tf
 
-path = 'video_processing/gesture_classification/trained_models/gesture_classifier/keypoint_classifier.tflite'
+path = 'video_processing/gesture_classification/trained_models/gesture_classifier/keypoint_classifier_click.tflite'
 
 
 class GestureClassifier(object):

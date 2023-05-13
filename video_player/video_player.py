@@ -146,7 +146,9 @@ class VideoPlayer(QMainWindow):
 
         self.playlistWidget = MyPlaylistWidget(self.video_album_path)
         self.mediaPlayerWidget = MediaPlayerWidget()
+
         self.mediaPlayer = QMediaPlayer(None, QMediaPlayer.VideoSurface)
+
         self.videoPlayerWidget = QWidget()
 
         self.index = 0

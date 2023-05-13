@@ -58,41 +58,33 @@ class PiMediaCenter(QMainWindow):
 class GestureRecognitionThread(QThread):
     open_app = pyqtSignal(bool)
     gesture_detected = pyqtSignal(int)
-
     def run(self):
         self.thread_active = True
         self.gestureRecognition = GestureRecognition()
         self.gestureRecognition.videoStream.start()
         self.open_app.emit(self.gestureRecognition.videoStream.stream_started)
-
         while self.thread_active:
             frame = self.gestureRecognition.videoStream.read()
             if frame is not None:
                 frame = cv2.flip(frame, 1)
                 detected_gesture_id = self.gestureRecognition.frame_processing(frame)
                 detected_gesture_label = ''
-
                 if detected_gesture_id >= 30:
                     detected_gesture_label = self.gestureRecognition.index_finger_movement_labels[detected_gesture_id - 30]
-
                 self.gesture_detected.emit(detected_gesture_id)
-
                 # Calculate and display the fps value on the screen
                 fps = self.gestureRecognition.get_fps()
                 cv2.putText(frame, str(int(fps)), (10, 70), cv2.FONT_HERSHEY_PLAIN, 3, (255, 0, 255), 3)
                 # Display the detected gesture
                 cv2.putText(frame, detected_gesture_label, (10, 110), cv2.FONT_HERSHEY_PLAIN, 3, (255, 0, 255), 3)
                 cv2.imshow("Frame", frame)
-
                 key = cv2.waitKey(1)
                 if key == ord('q'):
                     self.gestureRecognition.videoStream.stop()
                     self.thread_active = False
                     break
-
             else:
                 print("No frame detected")
-
         self.gestureRecognition.videoStream.stop()
         cv2.destroyAllWindows()
 

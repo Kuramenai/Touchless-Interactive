@@ -6,6 +6,8 @@ import numpy as np
 import itertools
 from collections import deque
 from collections import Counter
+from mouse import move, click
+from pyautogui import size
 from video_processing.video_stream import VideoStream
 from video_processing.hand_tracking_module import HandDetector
 from video_processing.gesture_classification.gesture_classifier import GestureClassifier
@@ -33,7 +35,8 @@ class GestureRecognition:
 
         self.history_length = 16
         self.point_history = deque(maxlen=self.history_length)
-        self.pointer_movement_history = deque(maxlen=self.history_length)
+        self.gesture_history = deque(maxlen=2)
+        self.previous_gesture, self.current_gesture = -1, -1
 
         self.videoStream = VideoStream(0)
         self.__detector = HandDetector()
@@ -43,10 +46,12 @@ class GestureRecognition:
     def select_mode(self):
         if 48 <= self.key <= 57:  # 0 ~ 9
             self.gesture_id = self.key - 48
-        if self.key == ord('d'):  # d
+        elif self.key == ord('n'):  # normal
             self.mode = 0
-        if self.key == ord('s'):  # s
+        elif self.key == ord('s'):  # capture static gesture
             self.mode = 1
+        elif self.key == ord('d'):  # capture dynamic gesture
+            self.mode = 2
 
     def frame_processing(self, frame):
 
@@ -58,17 +63,26 @@ class GestureRecognition:
         if len(landmarks) != 0:
             self.processed_landmarks = self.get_processed_landmarks(landmarks)
             detected_gesture_id = self.__gestureClassifier(self.processed_landmarks)
+            self.previous_gesture = self.current_gesture
+            self.current_gesture = detected_gesture_id
             # Pointer Mode:
             if detected_gesture_id == 2:
+                screen_width, screen_height = size()
+                pointer_xpos = landmarks[8][0]
+                pointer_ypos = landmarks[8][1]
+                pointer_xpos, pointer_ypos = np.interp(pointer_xpos, (0, w), (0, screen_width)), \
+                    np.interp(pointer_ypos, (0, h), (0, screen_height))
+                move(pointer_xpos, pointer_ypos)
+
                 self.point_history.append(landmarks[8])
                 self.processed_points_history = self.get_processed_points_history(frame, self.point_history, w, h)
                 # Index finger movement detection
                 if len(self.processed_points_history) == self.history_length * 2:
                     pointer_movement_id = self.__indexMovementClassifier(self.processed_points_history)
-                    # self.pointer_movement_history.append(pointer_movement_id)
-                    # if pointer_movement_id == 2:
-                    #     pointer_movement_id = Counter(self.pointer_movement_history).most_common()
                     detected_gesture_id = 30 + pointer_movement_id
+            elif self.current_gesture == 4:
+                if self.previous_gesture == 2:
+                    print("Click")
 
         return detected_gesture_id
 
@@ -110,8 +124,8 @@ class GestureRecognition:
 
         # calculate the other landmark point positions relative to the position of the wrist
         wrist_xpos, wrist_ypos = landmarks[0][0], landmarks[0][1]
-        processed_landmarks[:, 0], processed_landmarks[:, 1] = processed_landmarks[:, 0] - wrist_xpos,\
-                                                                processed_landmarks[:, 1] - wrist_ypos
+        processed_landmarks[:, 0], processed_landmarks[:, 1] = processed_landmarks[:, 0] - wrist_xpos, \
+                                                               processed_landmarks[:, 1] - wrist_ypos
         # Flatten the array and convert it to a python list
         processed_landmarks = processed_landmarks.ravel()
         # Normalization
@@ -126,7 +140,7 @@ class GestureRecognition:
         # Convert to relative coordinates
         wrist_xpos, wrist_ypos = temp_point_history[0][0], temp_point_history[0][1]
         temp_point_history[:, 0], temp_point_history[:, 1] = (temp_point_history[:, 0] - wrist_xpos) / image_width, \
-                                                            (temp_point_history[:, 1] - wrist_ypos) / image_height
+                                                             (temp_point_history[:, 1] - wrist_ypos) / image_height
 
         # Convert to a one-dimensional list
         temp_point_history = temp_point_history.ravel()
@@ -135,9 +149,16 @@ class GestureRecognition:
 
     def save_landmarks(self):
         """Save landmarks points for training"""
-        dataset_path = "C:/Users/marce/Documents/PycharmProjects/Touchless/video_processing" \
-                       "/gesture_classification_models/gesture_landmarks_dataset2.csv"
+        if self.mode == 0:
+            pass
         if self.mode == 1 and (0 <= self.gesture_id <= 9):
+            dataset_path = "video_processing/gesture_classification_models/static_gesture_landmarks_dataset.csv"
+            with open(dataset_path,
+                      mode='a', newline="") as f:
+                landmarks_dataset = csv.writer(f)
+                landmarks_dataset.writerow([self.gesture_id, *self.processed_landmarks])
+        elif self.mode == 2 and (0 <= self.gesture_id <= 9):
+            dataset_path = "video_processing/gesture_classification_models/dynamoc_gesture_landmarks_dataset.csv"
             with open(dataset_path,
                       mode='a', newline="") as f:
                 landmarks_dataset = csv.writer(f)
